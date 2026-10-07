@@ -1,7 +1,8 @@
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Filters from "../components/Filters";
 import Pagination from "../components/Pagination";
 import StudentTable from "../components/StudentTable";
+import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
 import { downloadCsv, studentsToCsv } from "../utils/csv";
 import { distinctValues, filterStudents, paginate, sortStudents } from "../utils/students";
@@ -10,6 +11,7 @@ const PAGE_SIZES = [10, 25, 50, 100];
 const DEFAULT_SIZE = 25;
 
 function StudentsPage() {
+  const { isAdmin } = useAuth();
   const { data, loading, error, refetch } = useFetch("/api/students");
   const [params, setParams] = useSearchParams();
   const all = data ?? [];
@@ -62,9 +64,13 @@ function StudentsPage() {
     <div className="page">
       <header className="page-header">
         <h1>Students</h1>
-        <button type="button" className="button--ghost" onClick={handleExport} disabled={!data || sorted.length === 0}>
-          Export CSV ({sorted.length})
-        </button>
+        <div className="page-header__actions">
+          {isAdmin && <Link to="/admin/import" className="button-link button-link--ghost">Import CSV</Link>}
+          {isAdmin && <Link to="/students/new" className="button-link">Add student</Link>}
+          <button type="button" className="button--ghost" onClick={handleExport} disabled={!data || sorted.length === 0}>
+            Export CSV ({sorted.length})
+          </button>
+        </div>
       </header>
 
       {loading && <p className="state">Loading student records…</p>}

@@ -1,8 +1,15 @@
+import secrets
+
 from flask import Flask, jsonify, request
 
+import auth
+import importer
+import users
+import write
 from config import Config
 from db import close_db, get_db, init_db
 from seed import is_empty, seed
+from validation import ValidationError
 
 # Cumulative GPA per student (average grade points over all records).
 STUDENT_GPA = """
@@ -20,11 +27,22 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = secrets.token_hex(32)
+        print("WARNING: SECRET_KEY is not set; using a temporary key. "
+              "Everyone will be signed out when the server restarts.")
+
     init_db(app.config["DATABASE"])
     if app.config["SEED_IF_EMPTY"] and is_empty(app.config["DATABASE"]):
         seed(app.config["DATABASE"])
+    auth.ensure_first_admin(app)
 
     app.teardown_appcontext(close_db)
+    app.before_request(auth.authenticate)
+    app.register_blueprint(auth.bp)
+    app.register_blueprint(write.bp)
+    app.register_blueprint(importer.bp)
+    app.register_blueprint(users.bp)
 
     # ---------- CORS (no extra dependency) ----------
     @app.after_request
@@ -33,11 +51,22 @@ def create_app(test_config=None):
         if origin and origin in app.config["CORS_ORIGINS"]:
             resp.headers["Access-Control-Allow-Origin"] = origin
             resp.headers["Vary"] = "Origin"
-            resp.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-            resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+            resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+            resp.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        if request.path.startswith("/api/"):
+            resp.headers["Cache-Control"] = "no-store"  # student data must not be cached
         return resp
 
     # ---------- errors ----------
+    @app.errorhandler(ValidationError)
+    def invalid(e):
+        return jsonify(error="validation_error", message=e.message, field=e.field), 400
+
+    @app.errorhandler(413)
+    def too_large(_e):
+        return jsonify(error="too_large", message="That file is too large (limit 2 MB)"), 413
+
     @app.errorhandler(404)
     def not_found(_e):
         return jsonify(error="not_found", message="Resource not found"), 404
@@ -151,12 +180,14 @@ def create_app(test_config=None):
     @app.get("/api/students/<int:student_id>")
     def student_detail(student_id):
         db = get_db()
-        row = db.execute(
-            f"SELECT id, name, gpa, failing_courses FROM ({STUDENT_GPA}) WHERE id = :id",
-            {**params(), "id": student_id},
-        ).fetchone()
-        if row is None:
+        student = db.execute("SELECT id, name FROM students WHERE id = ?", (student_id,)).fetchone()
+        if student is None:
             return jsonify(error="not_found", message="Student not found"), 404
+        stats = db.execute(
+            f"SELECT gpa, failing_courses FROM ({STUDENT_GPA}) WHERE id = :id",
+            {**params(), "id": student_id},
+        ).fetchone()  # None until the student has at least one result
+        gpa = stats["gpa"] if stats else None
         records = db.execute(
             "SELECT id, course, semester, score FROM records "
             "WHERE student_id = ? ORDER BY semester, course",
@@ -168,11 +199,11 @@ def create_app(test_config=None):
             (student_id,),
         ).fetchall()
         return jsonify(
-            id=row["id"],
-            name=row["name"],
-            gpa=row["gpa"],
-            failing_courses=row["failing_courses"],
-            at_risk=row["gpa"] < app.config["AT_RISK_GPA"],
+            id=student["id"],
+            name=student["name"],
+            gpa=gpa,
+            failing_courses=stats["failing_courses"] if stats else 0,
+            at_risk=gpa is not None and gpa < app.config["AT_RISK_GPA"],
             records=[dict(r) for r in records],
             semester_gpa=[dict(r) for r in semesters],
         )

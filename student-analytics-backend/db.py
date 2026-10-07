@@ -21,6 +21,25 @@ CREATE INDEX IF NOT EXISTS idx_records_student ON records(student_id);
 CREATE INDEX IF NOT EXISTS idx_records_course ON records(course);
 CREATE INDEX IF NOT EXISTS idx_records_semester ON records(semester);
 
+CREATE TABLE IF NOT EXISTS users (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    password_hash TEXT NOT NULL,
+    role          TEXT NOT NULL CHECK (role IN ('admin', 'viewer')),
+    active        INTEGER NOT NULL DEFAULT 1,
+    -- bumped on password/role/status changes so old login tokens stop working
+    token_version INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts       TEXT NOT NULL DEFAULT (datetime('now')),
+    username TEXT,
+    action   TEXT NOT NULL,
+    detail   TEXT
+);
+
 -- Grade points on a 4.0 scale (A=4 ... F=0), matching the frontend grade bands.
 CREATE VIEW IF NOT EXISTS record_points AS
 SELECT

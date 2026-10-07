@@ -17,3 +17,19 @@ class Config:
     AT_RISK_GPA = float(os.environ.get("AT_RISK_GPA", 2.0))
     # Fill an empty database with demo data on startup
     SEED_IF_EMPTY = True
+
+    # ---- bulk import ----
+    MAX_IMPORT_ROWS = int(os.environ.get("MAX_IMPORT_ROWS", 5000))
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # request size cap (bytes)
+
+    # ---- authentication ----
+    # Signs login tokens. Set a long random value in production (python -c "import secrets; print(secrets.token_hex(32))").
+    # If unset, a random key is generated at startup and everyone is signed out on each restart.
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    TOKEN_MAX_AGE = int(os.environ.get("TOKEN_MAX_AGE", 8 * 3600))  # seconds
+    # First-run admin account (only used when there are no users yet).
+    ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")  # if unset, a random one is printed once
+    MIN_PASSWORD_LENGTH = 10
+    LOGIN_MAX_FAILS = int(os.environ.get("LOGIN_MAX_FAILS", 5))
+    LOGIN_LOCK_SECONDS = int(os.environ.get("LOGIN_LOCK_SECONDS", 60))

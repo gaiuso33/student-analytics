@@ -1,32 +1,11 @@
-import os
-import sys
-import tempfile
+import os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import unittest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app import create_app  # noqa: E402
+from base import ApiTestCase
 
 
-class ApiTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory()
-        cls.app = create_app({
-            "DATABASE": os.path.join(cls.tmp.name, "test.db"),
-            "TESTING": True,
-        })
-        cls.client = cls.app.test_client()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.tmp.cleanup()
-
-    def get(self, url, **kw):
-        res = self.client.get(url, **kw)
-        self.assertEqual(res.status_code, 200, res.data)
-        return res.get_json()
-
+class ApiTests(ApiTestCase):
     def test_students_shape(self):
         rows = self.get("/api/students")
         self.assertGreater(len(rows), 0)
@@ -57,7 +36,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(top[0]["gpa"], self.get("/api/analytics")["highest_gpa"])
 
     def test_top_students_bad_limit(self):
-        res = self.client.get("/api/top-students?limit=abc")
+        res = self.request("GET", "/api/top-students?limit=abc")
         self.assertEqual(res.status_code, 400)
         self.assertEqual(res.get_json()["error"], "bad_request")
 
@@ -100,7 +79,7 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(d["at_risk"], d["gpa"] < self.app.config["AT_RISK_GPA"])
 
     def test_student_detail_404(self):
-        res = self.client.get("/api/students/999999")
+        res = self.request("GET", "/api/students/999999")
         self.assertEqual(res.status_code, 404)
         self.assertEqual(res.get_json()["error"], "not_found")
 
@@ -123,7 +102,7 @@ class ApiTests(unittest.TestCase):
         self.assertNotIn("Access-Control-Allow-Origin", bad.headers)
 
     def test_json_404(self):
-        res = self.client.get("/api/nope")
+        res = self.request("GET", "/api/nope")
         self.assertEqual(res.status_code, 404)
         self.assertEqual(res.get_json()["error"], "not_found")
 

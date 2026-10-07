@@ -102,6 +102,11 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .sidebar__actions { display: flex; align-items: center; gap: 0.5rem; }
 .sidebar .button--ghost { color: #cfe0e6; border-color: rgba(255, 255, 255, 0.3); }
 .sidebar .button--ghost:hover { background: rgba(255, 255, 255, 0.1); }
+.sidebar { display: flex; flex-direction: column; }
+.sidebar__panel { display: flex; flex-direction: column; flex: 1; }
+.sidebar__user { margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.15); }
+.sidebar__user p { margin: 0 0 0.6rem; font-size: 0.9rem; word-break: break-word; }
+.sidebar__user span { color: #a9bec7; font-size: 0.8rem; }
 .sidebar__menu { display: none; }
 .sidebar ul { list-style: none; padding: 0; margin: 0; }
 .sidebar li { margin: 0.25rem 0; }
@@ -115,8 +120,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   .sidebar { width: 100%; height: auto; overflow: visible; padding: 0.7rem 1rem; z-index: 20; }
   .sidebar__top { margin-bottom: 0; flex-wrap: nowrap; }
   .sidebar__menu { display: inline-block; }
-  .sidebar nav { display: none; }
-  .sidebar nav.is-open { display: block; margin-top: 0.6rem; }
+  .sidebar__panel { display: none; }
+  .sidebar__panel.is-open { display: flex; margin-top: 0.6rem; }
   .sidebar nav a { padding: 0.7rem 0.6rem; }
 }
 
@@ -199,3 +204,53 @@ tbody tr:last-child td { border-bottom: none; }
 .badge--alert { background: var(--badge-alert-bg); color: var(--badge-alert-ink); }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- forms, actions, auth ---------- */
+.form { display: grid; gap: 0.9rem; }
+.form--inline { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.75rem 1rem; }
+.form__actions { display: flex; gap: 0.5rem; align-items: center; padding-top: 1.45rem; }
+.form--inline .form__actions { padding-top: 1.45rem; }
+.form__error { flex-basis: 100%; margin: 0; }
+.field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.field label { font-size: 0.85rem; font-weight: 500; }
+.field input, .field select, td select {
+  padding: 0.5rem 0.65rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;
+  background: var(--surface); color: inherit; max-width: 100%;
+}
+.field__error { margin: 0; color: var(--alert); font-size: 0.85rem; }
+.field input[aria-invalid="true"] { border-color: var(--alert); }
+.notice { margin: 0; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--badge-ok-bg); color: var(--badge-ok-ink); }
+
+.form-card { margin-bottom: 1.25rem; max-width: 720px; }
+.form-card h2 { margin-top: 0.5rem; }
+.form-card > :last-child { margin-bottom: 0; }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0.5rem 0 0.75rem; }
+.section-header h2 { margin: 0; }
+.page-header__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.page-message { padding: 2rem 1.5rem; }
+
+.button-link {
+  display: inline-block; padding: 0.45em 0.9em; border-radius: 8px; font-weight: 500;
+  background: var(--brand); color: var(--brand-ink); border: 1px solid var(--brand); text-decoration: none;
+}
+.button-link:hover { filter: brightness(1.08); }
+.button--danger { color: var(--alert); border-color: transparent; }
+.button--danger:hover { background: var(--badge-alert-bg); }
+.row-actions { white-space: nowrap; text-align: right; }
+.row-actions button + button { margin-left: 0.25rem; }
+
+.login { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; position: relative; }
+.login__card { width: min(100%, 380px); padding: 1.75rem; }
+.login__card h1 { margin: 0; font-size: 1.5rem; }
+.login__theme { position: absolute; top: 1rem; right: 1rem; }
+
+/* ---------- import ---------- */
+.button-link--ghost { background: transparent; color: var(--brand); border-color: transparent; }
+.button-link--ghost:hover { background: var(--brand-soft); filter: none; }
+.radio-group { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.9rem 0.8rem; margin: 0; display: grid; gap: 0.4rem; }
+.radio-group legend { font-size: 0.85rem; font-weight: 500; padding: 0 0.3rem; }
+.radio-group label { display: flex; align-items: center; gap: 0.5rem; }
+.radio-group input { accent-color: var(--brand); }
+.summary-list { margin: 0 0 1rem; padding-left: 1.25rem; }
+.form__actions--flush { padding-top: 0; }
