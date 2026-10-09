@@ -65,6 +65,7 @@ Send `Authorization: Bearer <token>` on everything except health and login.
 | `GET /api/top-students` (`?limit=5`) | `[{id, name, gpa}]` highest cumulative GPA first |
 | `GET /api/course-difficulty` | `[{course, average_score, students}]` hardest first |
 | `GET /api/at-risk-students` | `[{id, name, gpa, failing_courses}]` lowest GPA first |
+| `GET /api/insights` | `{semester, previous_semester, insights[]}`: plain-language findings from the latest two semesters. Each insight is `{id, tone: positive|warning|neutral, text, students?: [{id, name, detail}], link?}` |
 | `GET /api/gpa-trend` | `[{semester, average_gpa}]` chronological |
 | `GET /api/health` | `{status: "ok"}` (public) |
 
@@ -96,6 +97,15 @@ result per course per semester (409 otherwise).
 
 Errors are JSON `{error, message}` (validation errors also include `field`) with the matching HTTP status.
 CORS allows `http://localhost:5173` and `http://127.0.0.1:5173` by default; set `CORS_ORIGINS` for others.
+`python app.py` (the local development server) additionally allows **any** `localhost` / `127.0.0.1` port, so a Vite dev server that
+moved to another port still works. Production (`wsgi.py`) never does.
+
+## Insights
+
+`GET /api/insights` compares the two most recent semesters (by semester label, sorted as text) and returns, when there is enough data:
+the change in average GPA, the change in pass rate, students whose semester GPA fell or rose by at least `INSIGHT_GPA_CHANGE`
+(default 1.0 GPA point; only students with results in both semesters), and the course with the lowest pass rate (needs two or more courses).
+With fewer than two semesters of results the list is empty.
 
 ## Bulk import
 

@@ -98,6 +98,9 @@ class ApiTests(ApiTestCase):
     def test_cors_only_for_allowed_origin(self):
         ok = self.client.get("/api/health", headers={"Origin": "http://localhost:5173"})
         self.assertEqual(ok.headers.get("Access-Control-Allow-Origin"), "http://localhost:5173")
+        # other localhost ports are NOT allowed unless the dev-only switch is on
+        other_port = self.client.get("/api/health", headers={"Origin": "http://localhost:5174"})
+        self.assertNotIn("Access-Control-Allow-Origin", other_port.headers)
         bad = self.client.get("/api/health", headers={"Origin": "http://evil.example"})
         self.assertNotIn("Access-Control-Allow-Origin", bad.headers)
 
