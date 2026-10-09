@@ -77,7 +77,7 @@ Browser ──HTTPS──> Caddy ─┬─ /api/*  ──> Gunicorn + Flask ─�
 ```
 student-analytics/
 ├── backend/  # Flask + SQLite API
-│   ├── tests/  # 58 automated tests  [base.py, test_api.py, test_auth.py, test_import.py, test_insights.py, test_write.py]
+│   ├── tests/  # 64 automated tests  [base.py, test_api.py, test_auth.py, test_demo_accounts.py, test_import.py, test_insights.py, test_write.py]
 │   ├── .dockerignore
 │   ├── .env.example
 │   ├── .gitignore
@@ -96,6 +96,8 @@ student-analytics/
 │   ├── validation.py  # input validation rules
 │   ├── write.py  # add/edit/delete students and results
 │   └── wsgi.py  # production entry point (gunicorn)
+├── docs/
+│   └── deploy-demo.md  # free demo hosting walkthrough (Render + Netlify)
 ├── frontend/  # React + Vite app
 │   ├── public/  # static files (theme-init.js, SPA redirects)  [_redirects, theme-init.js]
 │   ├── src/
@@ -145,7 +147,9 @@ student-analytics/
 ├── .gitignore
 ├── backup.sh  # database backup script
 ├── Caddyfile  # HTTPS, security headers, /api proxy, static site
-└── docker-compose.yml  # production stack: web + backend + volumes
+├── docker-compose.yml  # production stack: web + backend + volumes
+├── netlify.toml  # website build settings for Netlify (demo hosting)
+└── render.yaml  # API settings for Render (demo hosting)
 ```
 
 Your frontend folder also keeps its own `package.json`, `package-lock.json`, `vite.config.js` and `eslint.config.js`.
@@ -197,6 +201,8 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | `SECRET_KEY` | *(random per start)* | Signs login tokens. **Required in production** (`wsgi.py` refuses to start without it). If it changes, everyone is signed out |
 | `ADMIN_USERNAME` | `admin` | First-run administrator (only used while there are no users) |
 | `ADMIN_PASSWORD` | *(random, printed once)* | First-run administrator password, minimum 10 characters |
+| `DEMO_VIEWER_USERNAME` / `DEMO_VIEWER_PASSWORD` | *(none)* | Optional read-only account created on first run, for sharing a demo without the admin login |
+| `PORT` | `8000` in Docker | Port the container listens on; hosting platforms such as Render set it themselves |
 | `SEED_DEMO_DATA` | `1` locally, `0` in Docker | Fill an empty database with fake students |
 | `DATABASE` | `students.db` | Path of the SQLite file |
 | `PASS_MARK` | `60` | Passing score |
@@ -256,7 +262,7 @@ In the app: **Import data** in the sidebar, which also offers a template downloa
 ## Testing
 
 ```bash
-# Backend: 58 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS)
+# Backend: 64 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS, demo accounts)
 cd backend && python3 -m unittest discover -s tests -v
 
 # Frontend: unit tests for filtering, sorting, paging, grades, CSV and form validation
@@ -329,6 +335,17 @@ Static frontend on Netlify/Vercel/Cloudflare Pages, API on a server or a platfor
    `CORS_ORIGINS=https://your-frontend-address`. Serve it over HTTPS.
 2. Frontend: build with `VITE_API_BASE_URL=https://your-api-address npm run build`, and publish `dist/`.
    `frontend/public/_redirects` already makes page reloads work on Netlify; on Vercel add a rewrite of all paths to `/index.html`.
+
+### Option C: free demo for pitching (Render + Netlify)
+
+If you only need a **link to show people**, not a place to keep real data, the free tiers of Render (API) and Netlify
+(website) are enough. It takes about 30 to 40 minutes and needs no server or domain. **Read the limits first:** the free
+API sleeps after 15 minutes without visitors (waking takes up to about a minute) and loses its data whenever it
+restarts, so the demo database is rebuilt with fake students each time.
+
+Step-by-step instructions, the pitch-day tips and troubleshooting are in **[docs/deploy-demo.md](docs/deploy-demo.md)**.
+The settings files are `render.yaml` and `netlify.toml` in the project root. A read-only `viewer` login (set with
+`DEMO_VIEWER_USERNAME` / `DEMO_VIEWER_PASSWORD`) lets you hand out access without the admin account.
 
 ### Production notes
 
@@ -405,6 +422,7 @@ Ideas for later versions, roughly by value:
 | "Too many failed attempts" | Wait a minute, or an admin can reset the password |
 | Forgot the admin password | `python manage.py set-password admin` (or via `docker compose exec backend`) |
 | Fake students appear in production | `SEED_DEMO_DATA` was not `0` on the first start. Delete the volume (`docker compose down -v`) **before you have real data** and start again |
+| Render says `ADMIN_PASSWORD is not acceptable` | The first admin password must be at least 10 characters (the server refuses to start with a shorter one) |
 | Import says "Missing column(s)" | The first row must contain Student, Course, Semester and Score headings |
 | HTTPS certificate not issued | The domain's A record must point at the server and ports 80/443 must be reachable. Check `docker compose logs web` |
 | `npm test` fails with "vitest not found" | `npm install -D vitest` |
@@ -421,4 +439,5 @@ First complete release.
 - Add, edit, delete and bulk-import of student results.
 - Light/dark theme, mobile layout, accessibility work.
 - Docker + Caddy production setup with automatic HTTPS, security headers and a backup script.
-- 58 backend tests and frontend unit tests.
+- Free demo hosting setup (Render API + Netlify website) with an optional read-only demo account.
+- 64 backend tests and frontend unit tests.

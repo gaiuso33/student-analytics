@@ -1,0 +1,22 @@
+# Netlify: builds the React app from ./frontend (see docs/deploy-demo.md).
+# Leave "Base directory" empty in the Netlify settings; the paths below are relative to the repository root.
+# Set VITE_API_BASE_URL (your Render API address) under Site configuration -> Environment variables BEFORE the first build.
+[build]
+  command = "npm --prefix frontend ci && npm --prefix frontend run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: every path serves the app so reloads and deep links work.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "same-origin"
