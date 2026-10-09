@@ -1,0 +1,47 @@
+# Single-server deployment: Caddy (HTTPS, static site, /api proxy) + Flask/Gunicorn + SQLite on a volume.
+#   cp .env.example .env   # fill it in
+#   docker compose up -d --build
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env (see .env.example)}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA:-0}
+      PASS_MARK: ${PASS_MARK:-60}
+      AT_RISK_GPA: ${AT_RISK_GPA:-2.0}
+      TOKEN_MAX_AGE: ${TOKEN_MAX_AGE:-28800}
+      DATABASE: /data/students.db
+    volumes:
+      - students_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # No published ports: only the web container can reach the API.
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  students_data:
+  caddy_data:
+  caddy_config:

@@ -16,7 +16,8 @@ class Config:
     # A student is at risk when cumulative GPA is below this value
     AT_RISK_GPA = float(os.environ.get("AT_RISK_GPA", 2.0))
     # Fill an empty database with demo data on startup
-    SEED_IF_EMPTY = True
+    # Set SEED_DEMO_DATA=0 in production so fake students are never added to a real database.
+    SEED_IF_EMPTY = os.environ.get("SEED_DEMO_DATA", "1").lower() in ("1", "true", "yes")
 
     # ---- bulk import ----
     MAX_IMPORT_ROWS = int(os.environ.get("MAX_IMPORT_ROWS", 5000))

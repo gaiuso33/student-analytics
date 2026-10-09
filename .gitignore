@@ -1,3 +1,11 @@
-/node_modules
-*.zip
-*.csv
+node_modules/
+dist/
+.env
+.env.local
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.db-wal
+*.db-shm
+backups/

@@ -71,6 +71,7 @@ def close_db(_exc=None):
 
 def init_db(database_path):
     conn = sqlite3.connect(database_path)
+    conn.execute("PRAGMA journal_mode=WAL")  # readers don't block the writer
     conn.executescript(SCHEMA)
     conn.commit()
     conn.close()
