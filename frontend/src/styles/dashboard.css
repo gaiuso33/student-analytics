@@ -254,3 +254,17 @@ tbody tr:last-child td { border-bottom: none; }
 .radio-group input { accent-color: var(--brand); }
 .summary-list { margin: 0 0 1rem; padding-left: 1.25rem; }
 .form__actions--flush { padding-top: 0; }
+
+/* ---------- insights ---------- */
+.card--wide { margin-bottom: 1rem; }
+.insights { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.card .insights { padding-left: 0; }
+.insight { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; padding: 0.6rem 0.8rem; border-left: 4px solid var(--line); background: var(--surface-2); border-radius: 0 8px 8px 0; }
+.insight--positive { border-left-color: var(--grade-a); }
+.insight--warning { border-left-color: var(--alert); }
+.insight__tone { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.insight--positive .insight__tone { color: var(--badge-ok-ink); }
+.insight--warning .insight__tone { color: var(--badge-alert-ink); }
+.insight__text { flex: 1 1 24rem; }
+.insight__students { flex-basis: 100%; margin: 0.25rem 0 0; padding-left: 1.25rem; font-size: 0.9rem; }
+.card .insight__students li { padding: 0.05rem 0; }

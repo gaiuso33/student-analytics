@@ -26,7 +26,9 @@ edit data, while viewers get read-only access.
 ## What it does
 
 **Dashboards**
-- **Overview:** total students, average and highest GPA, pass rate; top students, hardest courses, at-risk students;
+- **Overview:** total students, average and highest GPA, pass rate; **insights** in plain language (how GPA and pass rate moved
+  since the previous semester, students who dropped or improved sharply, the course with the lowest pass rate); top students,
+  hardest courses, at-risk students;
   charts for average GPA by semester, grade distribution (A to F) and average score per course (with the pass-mark line).
 - **Students:** every result as a row. Search by name or course; filter by course, semester, score range and
   "at-risk students only"; sort any column; page through 10/25/50/100 rows. All of this is kept in the page
@@ -75,7 +77,7 @@ Browser ──HTTPS──> Caddy ─┬─ /api/*  ──> Gunicorn + Flask ─�
 ```
 student-analytics/
 ├── backend/  # Flask + SQLite API
-│   ├── tests/  # 46 automated tests  [base.py, test_api.py, test_auth.py, test_import.py, test_write.py]
+│   ├── tests/  # 58 automated tests  [base.py, test_api.py, test_auth.py, test_import.py, test_insights.py, test_write.py]
 │   ├── .dockerignore
 │   ├── .env.example
 │   ├── .gitignore
@@ -85,6 +87,7 @@ student-analytics/
 │   ├── db.py  # schema and connections
 │   ├── Dockerfile
 │   ├── importer.py  # bulk CSV import
+│   ├── insights.py  # plain-language findings for the Overview page
 │   ├── manage.py  # command-line account management
 │   ├── README.md
 │   ├── requirements.txt
@@ -106,6 +109,7 @@ student-analytics/
 │   │   │   ├── CourseDifficulty.jsx
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── Filters.jsx
+│   │   ├── InsightsCard.jsx
 │   │   │   ├── Leaderboard.jsx
 │   │   │   ├── NameForm.jsx
 │   │   │   ├── Pagination.jsx
@@ -198,7 +202,8 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | `PASS_MARK` | `60` | Passing score |
 | `AT_RISK_GPA` | `2.0` | At-risk threshold |
 | `TOKEN_MAX_AGE` | `28800` | Sign-in lifetime in seconds (8 hours) |
-| `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed browser origins (only needed when the site and API are on different addresses) |
+| `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed browser origins (only needed when the site and API are on different addresses). `python app.py` also allows any localhost port automatically |
+| `INSIGHT_GPA_CHANGE` | `1.0` | How far a student's semester GPA must move to be listed as improving or declining |
 | `LOGIN_MAX_FAILS` / `LOGIN_LOCK_SECONDS` | `5` / `60` | Failed-sign-in lockout |
 | `MAX_IMPORT_ROWS` | `5000` | Rows per CSV import (file size limit is 2 MB) |
 
@@ -236,7 +241,7 @@ The full reference, with request and response shapes, is in [`backend/README.md`
 | Area | Endpoints |
 |------|-----------|
 | Sign-in | `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/change-password` |
-| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend` |
+| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend`, `/api/insights` |
 | Write (admin) | `POST/PUT/DELETE /api/students…`, `POST /api/students/<id>/records`, `PUT/DELETE /api/records/<id>`, `POST /api/import` |
 | Admin | `GET/POST /api/users`, `PATCH /api/users/<id>`, `GET /api/audit` |
 
@@ -251,7 +256,7 @@ In the app: **Import data** in the sidebar, which also offers a template downloa
 ## Testing
 
 ```bash
-# Backend: 46 tests (API, sign-in and roles, writes, user admin, CSV import)
+# Backend: 58 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS)
 cd backend && python3 -m unittest discover -s tests -v
 
 # Frontend: unit tests for filtering, sorting, paging, grades, CSV and form validation
@@ -381,7 +386,7 @@ Ideas for later versions, roughly by value:
 
 1. Server-side filtering and paging (needed for large datasets).
 2. Automated browser tests for the main journeys (sign-in, import, add student).
-3. Per-course and per-semester comparison views and trend alerts ("GPA fell 0.5 since last semester").
+3. Per-course and per-semester comparison views, and emailed alerts when a student drops sharply.
 4. Student notes and intervention tracking for at-risk students.
 5. Email password reset and optional two-factor sign-in.
 6. PostgreSQL option for multi-server setups.
@@ -394,6 +399,7 @@ Ideas for later versions, roughly by value:
 | `vite: not found` | Run `npm install` in `frontend/`. Check `node -v` is 20.19+ or 22.12+ |
 | Blank page, console says `React is not defined` | Config files must be named `vite.config.js` and `eslint.config.js` (dots, not underscores) |
 | Page shows "Cannot reach the server" | The backend isn't running or is on another address. Start `python app.py` (local) or check `docker compose ps` |
+| Sign-in says "Cannot reach the server" but the backend is running | The browser blocked the request (CORS). Locally, `python app.py` allows any localhost port; check the address bar matches. If another dev server holds port 5173, stop it, or run `npm run dev -- --port 5173 --strictPort`. In production with split hosting, set `CORS_ORIGINS` to the site's address |
 | Signed out after every server restart | `SECRET_KEY` isn't set, so a new random key is generated each start. Set it |
 | "Please sign in" even after signing in | The token expired (8 hours) or the account was changed/deactivated. Sign in again |
 | "Too many failed attempts" | Wait a minute, or an admin can reset the password |
@@ -410,8 +416,9 @@ Ideas for later versions, roughly by value:
 First complete release.
 
 - Overview, Students, Student detail and Courses screens with charts, filters, sorting, pagination and CSV export.
+- Automated insights on the Overview (semester-over-semester GPA and pass-rate movement, students who dropped or improved, lowest pass-rate course).
 - Backend with SQLite, sign-in, viewer/administrator roles, user management and audit log.
 - Add, edit, delete and bulk-import of student results.
 - Light/dark theme, mobile layout, accessibility work.
 - Docker + Caddy production setup with automatic HTTPS, security headers and a backup script.
-- 46 backend tests and frontend unit tests.
+- 58 backend tests and frontend unit tests.

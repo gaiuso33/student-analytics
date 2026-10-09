@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Charts from "../components/Charts";
 import StatsCards from "../components/StatsCards";
+import InsightsCard from "../components/InsightsCard";
 import Leaderboard from "../components/Leaderboard";
 import CourseDifficulty from "../components/CourseDifficulty";
 import AtRiskStudents from "../components/AtRiskStudents";
@@ -18,6 +19,8 @@ function OverviewPage() {
       </header>
 
       <StatsCards analytics={analytics.data} loading={analytics.loading} error={analytics.error} />
+
+      <InsightsCard />
 
       <div className="dashboard-grid">
         <Leaderboard />

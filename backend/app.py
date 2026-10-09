@@ -1,15 +1,19 @@
+import re
 import secrets
 
 from flask import Flask, jsonify, request
 
 import auth
 import importer
+import insights
 import users
 import write
 from config import Config
 from db import close_db, get_db, init_db
 from seed import is_empty, seed
 from validation import ValidationError
+
+LOCAL_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 
 # Cumulative GPA per student (average grade points over all records).
 STUDENT_GPA = """
@@ -42,13 +46,17 @@ def create_app(test_config=None):
     app.register_blueprint(auth.bp)
     app.register_blueprint(write.bp)
     app.register_blueprint(importer.bp)
+    app.register_blueprint(insights.bp)
     app.register_blueprint(users.bp)
 
     # ---------- CORS (no extra dependency) ----------
     @app.after_request
     def add_cors(resp):
         origin = request.headers.get("Origin")
-        if origin and origin in app.config["CORS_ORIGINS"]:
+        allowed = origin in app.config["CORS_ORIGINS"] or (
+            app.config["CORS_ALLOW_ANY_LOCALHOST"] and LOCAL_ORIGIN.match(origin or "")
+        )
+        if origin and allowed:
             resp.headers["Access-Control-Allow-Origin"] = origin
             resp.headers["Vary"] = "Origin"
             resp.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
@@ -239,4 +247,5 @@ def create_app(test_config=None):
 
 
 if __name__ == "__main__":
-    create_app().run(host="127.0.0.1", port=5000, debug=True)
+    # Local development server: debug mode, and any localhost port may call the API.
+    create_app({"CORS_ALLOW_ANY_LOCALHOST": True}).run(host="127.0.0.1", port=5000, debug=True)
