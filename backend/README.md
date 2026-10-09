@@ -32,6 +32,8 @@ Rebuild demo data with `python seed.py --reset` (accounts are kept unless you de
 - 5 failed sign-ins for a username from one address lock it for 60 seconds (counted in memory, per process).
 - Admins can't change their own role/status, so at least one admin always remains. Users are deactivated, not deleted.
 - Command line: `python manage.py create-user alice --role admin` and `python manage.py set-password alice`.
+- First run only: `ADMIN_PASSWORD`, if set, must be at least 10 characters or the server refuses to start. Setting both
+  `DEMO_VIEWER_USERNAME` and `DEMO_VIEWER_PASSWORD` also creates a read-only account (useful for demos).
 - Every sign-in, failed sign-in and data change is written to an audit log (`GET /api/audit`).
 
 ## Test

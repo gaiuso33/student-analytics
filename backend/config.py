@@ -38,6 +38,9 @@ class Config:
     # First-run admin account (only used when there are no users yet).
     ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")  # if unset, a random one is printed once
+    # Optional read-only account created on first run (handy for sharing a demo without giving out the admin login).
+    DEMO_VIEWER_USERNAME = os.environ.get("DEMO_VIEWER_USERNAME")
+    DEMO_VIEWER_PASSWORD = os.environ.get("DEMO_VIEWER_PASSWORD")
     MIN_PASSWORD_LENGTH = 10
     LOGIN_MAX_FAILS = int(os.environ.get("LOGIN_MAX_FAILS", 5))
     LOGIN_LOCK_SECONDS = int(os.environ.get("LOGIN_LOCK_SECONDS", 60))

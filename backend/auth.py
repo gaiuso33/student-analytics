@@ -1,5 +1,6 @@
 import secrets
 import sqlite3
+import sys
 import time
 from functools import wraps
 
@@ -8,7 +9,7 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from db import get_db
-from validation import ValidationError, password_problem
+from validation import ValidationError, clean_username, password_problem
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -173,6 +174,30 @@ def change_password():
 
 
 # ---------- first-run admin ----------
+def _maybe_create_demo_viewer(app, conn, admin_username):
+    name = app.config.get("DEMO_VIEWER_USERNAME")
+    password = app.config.get("DEMO_VIEWER_PASSWORD")
+    if not name or not password:
+        return
+    try:
+        name = clean_username(name)
+    except ValidationError as exc:
+        print(f"WARNING: demo viewer not created: {exc.message}")
+        return
+    problem = password_problem(password, app.config["MIN_PASSWORD_LENGTH"])
+    if problem:
+        print(f"WARNING: demo viewer not created: {problem}")
+        return
+    if name.lower() == admin_username.lower():
+        print("WARNING: demo viewer not created: it must differ from the admin username")
+        return
+    conn.execute(
+        "INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'viewer')",
+        (name, generate_password_hash(password)),
+    )
+
+
+
 def ensure_first_admin(app):
     conn = sqlite3.connect(app.config["DATABASE"])
     try:
@@ -183,10 +208,15 @@ def ensure_first_admin(app):
         generated = not password
         if generated:
             password = secrets.token_urlsafe(12)
+        else:
+            problem = password_problem(password, app.config["MIN_PASSWORD_LENGTH"])
+            if problem:  # refuse to start with a weak, deliberately chosen admin password
+                sys.exit(f"ADMIN_PASSWORD is not acceptable: {problem}")
         conn.execute(
             "INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'admin')",
             (username, generate_password_hash(password)),
         )
+        _maybe_create_demo_viewer(app, conn, admin_username=username)
         conn.commit()
     finally:
         conn.close()

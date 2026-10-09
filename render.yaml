@@ -1,0 +1,28 @@
+# Render Blueprint: the API for a free demo deployment (see docs/deploy-demo.md).
+# Free instances sleep after 15 minutes idle and lose their local files whenever they restart,
+# so the demo database is re-created (with fake demo data) each time. Never put real student data here.
+services:
+  - type: web
+    name: student-analytics-api
+    runtime: docker
+    plan: free
+    region: frankfurt            # closest Render region to Nigeria; change if you prefer
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD      # Render asks for this when you create the Blueprint (min. 10 characters)
+        sync: false
+      - key: DEMO_VIEWER_USERNAME
+        value: viewer
+      - key: DEMO_VIEWER_PASSWORD  # read-only login you can hand to people you're pitching to
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "1"
+      - key: CORS_ORIGINS        # your Netlify address, e.g. https://student-analytics.netlify.app (no trailing slash)
+        sync: false
