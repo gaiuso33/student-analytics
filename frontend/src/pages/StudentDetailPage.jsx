@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import ChartCard from "../components/ChartCard";
+import InterventionsPanel from "../components/InterventionsPanel";
 import NameForm from "../components/NameForm";
 import ResultForm from "../components/ResultForm";
 import { request } from "../api/client";
@@ -124,6 +125,8 @@ function StudentDetailPage() {
               </LineChart>
             </ChartCard>
           </div>
+
+          <InterventionsPanel studentId={student.id} atRisk={student.at_risk} />
 
           <div className="section-header">
             <h2>Results</h2>

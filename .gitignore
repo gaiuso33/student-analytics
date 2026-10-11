@@ -9,5 +9,9 @@ __pycache__/
 *.db-wal
 *.db-shm
 backups/
-deploy-demo.md
 *.zip
+# browser tests
+test-results/
+playwright-report/
+frontend/e2e/.tmp/
+frontend/e2e-failures.txt

@@ -5,7 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // e2e/ and the Playwright config run in Node, not the browser, so they are linted separately (or not at all)
+  globalIgnores(['dist', 'e2e', 'playwright.config.js', 'playwright-report', 'test-results']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

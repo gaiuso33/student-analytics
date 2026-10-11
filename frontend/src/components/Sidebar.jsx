@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { roleLabel } from "../utils/roles";
 import ThemeToggle from "./ThemeToggle";
 
 const LINKS = [
   { to: "/", label: "Overview", end: true },
   { to: "/students", label: "Students" },
   { to: "/courses", label: "Courses" },
+  { to: "/interventions", label: "Follow-ups" },
 ];
 const ADMIN_LINKS = [
   { to: "/admin/import", label: "Import data" },
@@ -66,7 +68,7 @@ function Sidebar() {
           <p>
             <strong>{user.username}</strong>
             <br />
-            <span>{isAdmin ? "Administrator" : "Viewer"}</span>
+            <span>{roleLabel(user.role)}</span>
           </p>
           <button type="button" className="button--ghost button--small" onClick={signOut}>
             Sign out

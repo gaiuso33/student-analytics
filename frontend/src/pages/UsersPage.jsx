@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { request } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
+import { roleLabel } from "../utils/roles";
 import { validatePassword, validateUsername } from "../utils/validate";
 
 function CreateUserForm({ onCreated }) {
@@ -45,7 +46,8 @@ function CreateUserForm({ onCreated }) {
         <label htmlFor={`${uid}-r`}>Role</label>
         <select id={`${uid}-r`} value={values.role} onChange={set("role")}>
           <option value="viewer">Viewer (read only)</option>
-          <option value="admin">Administrator</option>
+          <option value="staff">Staff (can record follow-ups)</option>
+          <option value="admin">Administrator (everything)</option>
         </select>
       </div>
       <div className="form__actions">
@@ -158,7 +160,7 @@ function UsersPage() {
                     </td>
                     <td>
                       {u.id === me.id ? (
-                        "Administrator"
+                        roleLabel(u.role)
                       ) : (
                         <select
                           aria-label={`Role for ${u.username}`}
@@ -166,6 +168,7 @@ function UsersPage() {
                           onChange={(e) => patch(u, { role: e.target.value })}
                         >
                           <option value="viewer">Viewer</option>
+                          <option value="staff">Staff</option>
                           <option value="admin">Administrator</option>
                         </select>
                       )}

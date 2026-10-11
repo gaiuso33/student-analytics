@@ -23,8 +23,9 @@ Rebuild demo data with `python seed.py --reset` (accounts are kept unless you de
 
 | Role | Can do |
 |------|--------|
-| `viewer` | Read all dashboards and student data |
-| `admin` | Everything a viewer can, plus add/edit/delete students and results, manage users, read the audit log |
+| `viewer` | Read all dashboards, student data and follow-ups |
+| `staff` | Everything a viewer can, plus record, edit and complete follow-ups |
+| `admin` | Everything staff can, plus delete follow-ups, add/edit/delete students and results, import CSV, manage users, read the audit log |
 
 - Passwords: at least 10 characters, stored hashed (scrypt via Werkzeug).
 - Sign-in returns a signed bearer token valid for `TOKEN_MAX_AGE` seconds (8 hours default). Changing a
@@ -68,6 +69,8 @@ Send `Authorization: Bearer <token>` on everything except health and login.
 | `GET /api/course-difficulty` | `[{course, average_score, students}]` hardest first |
 | `GET /api/at-risk-students` | `[{id, name, gpa, failing_courses}]` lowest GPA first |
 | `GET /api/insights` | `{semester, previous_semester, insights[]}`: plain-language findings from the latest two semesters. Each insight is `{id, tone: positive|warning|neutral, text, students?: [{id, name, detail}], link?}` |
+| `GET /api/students/<id>/interventions` | Follow-ups for one student, open ones first: `[{id, student_id, student_name, kind, note, status, due_date, created_by, created_at, updated_at, completed_at, overdue}]` |
+| `GET /api/interventions` (`?status=open|done|all&overdue=1&limit=`) | Follow-ups across all students; open ones by soonest due date (undated last) |
 | `GET /api/gpa-trend` | `[{semester, average_gpa}]` chronological |
 | `GET /api/health` | `{status: "ok"}` (public) |
 
@@ -78,6 +81,17 @@ Send `Authorization: Bearer <token>` on everything except health and login.
 | `POST /api/auth/login` `{username, password}` | `{token, expires_in, user}` (public) |
 | `GET /api/auth/me` | `{user}` |
 | `POST /api/auth/change-password` `{current_password, new_password}` | `{token, user}`; other sessions are signed out |
+
+### Follow-ups (staff or admin to write)
+
+| Endpoint | Body |
+|----------|------|
+| `POST /api/students/<id>/interventions` | `{kind, note, due_date?}` -> 201. `kind`: `meeting`, `tutoring`, `counselling`, `parent_contact`, `referral`, `other`. `note`: 1 to 1000 characters, line breaks allowed. `due_date`: `YYYY-MM-DD` or empty |
+| `PATCH /api/interventions/<id>` | any of `{kind, note, due_date, status}`; `status` is `open` or `done` (completing sets `completed_at`, reopening clears it). `due_date: null` removes the date |
+| `DELETE /api/interventions/<id>` | admin only -> 204 |
+
+The audit log records who created, changed or deleted a follow-up but never the note text. `GET /api/at-risk-students` also returns
+`open_interventions` and `last_intervention` for each student.
 
 ### Write (admin only)
 

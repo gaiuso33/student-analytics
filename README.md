@@ -1,6 +1,6 @@
 # Student Analytics Dashboard
 
-**Version 1.0.0** · 2026-10-08
+**Version 1.1.0 (in development on the `dev` branch)** · last release: 1.0.0, 2026-10-08
 
 A web dashboard for schools and departments to track student performance: grades, GPA trends, course
 difficulty and students at risk. Staff sign in with their own accounts; administrators can enter, import and
@@ -14,6 +14,7 @@ edit data, while viewers get read-only access.
 - [Accounts, roles and security](#accounts-roles-and-security)
 - [API overview](#api-overview)
 - [Testing](#testing)
+- [Automatic checks (CI)](#automatic-checks-ci)
 - [Deployment](#deployment)
 - [Release checklist and tagging v1.0.0](#release-checklist-and-tagging-v100)
 - [Known limitations](#known-limitations)
@@ -36,6 +37,14 @@ edit data, while viewers get read-only access.
 - **Student detail:** cumulative GPA, risk status, GPA per semester chart, and every result with its letter grade.
 - **Courses:** average score, pass rate and number of students per course, hardest first.
 - **Export:** download the current filtered, sorted list as a CSV (opens in Excel).
+
+**Follow-ups for at-risk students (intervention tracking)**
+- On each student's page, record what is being done to support them: meeting, tutoring, counselling, parent or guardian
+  contact, referral or other, with a note and an optional due date. Mark items done, reopen, edit.
+- **Follow-ups** screen: every open follow-up across all students (soonest due first, overdue ones flagged), plus the list of
+  **at-risk students who have no open follow-up yet**, which is the to-do list for staff.
+- The Overview's at-risk list marks students with no follow-up, and an insight reports how many are unattended.
+- Staff and administrators can record; everyone signed in can read. Notes are never copied into the audit log.
 
 **Data entry (administrators)**
 - Add, rename and delete students; add, edit and delete individual results (with confirmation on deletes).
@@ -76,18 +85,22 @@ Browser ──HTTPS──> Caddy ─┬─ /api/*  ──> Gunicorn + Flask ─�
 
 ```
 student-analytics/
+├── .github/  # automation: tests on every change (CI), dependency updates
+│   ├── workflows/  # CI pipeline  [ci.yml]
+│   └── dependabot.yml
 ├── backend/  # Flask + SQLite API
-│   ├── tests/  # 64 automated tests  [base.py, test_api.py, test_auth.py, test_demo_accounts.py, test_import.py, test_insights.py, test_write.py]
+│   ├── tests/  # automated API tests  [base.py, test_api.py, test_auth.py, test_demo_accounts.py, test_import.py, test_insights.py, test_interventions.py, test_write.py]
 │   ├── .dockerignore
 │   ├── .env.example
 │   ├── .gitignore
 │   ├── app.py  # app factory and read endpoints
 │   ├── auth.py  # login, tokens, roles, audit helper, throttling
 │   ├── config.py  # settings and business rules
-│   ├── db.py  # schema and connections
+│   ├── db.py  # schema, connections and migrations
 │   ├── Dockerfile
 │   ├── importer.py  # bulk CSV import
 │   ├── insights.py  # plain-language findings for the Overview page
+│   ├── interventions.py  # follow-up tracking for students
 │   ├── manage.py  # command-line account management
 │   ├── README.md
 │   ├── requirements.txt
@@ -96,13 +109,14 @@ student-analytics/
 │   ├── validation.py  # input validation rules
 │   ├── write.py  # add/edit/delete students and results
 │   └── wsgi.py  # production entry point (gunicorn)
-├── docs/
+├── docs/  # extra guides
 │   └── deploy-demo.md  # free demo hosting walkthrough (Render + Netlify)
 ├── frontend/  # React + Vite app
+│   ├── e2e/  # browser tests (Playwright)  [account.spec.js, auth.spec.js, constants.js, followups.spec.js, helpers.js, import.spec.js, layout.spec.js, smoke.spec.js, students.spec.js, users.spec.js]
 │   ├── public/  # static files (theme-init.js, SPA redirects)  [_redirects, theme-init.js]
 │   ├── src/
 │   │   ├── api/  # API client (adds the login token)  [client.js]
-│   │   ├── auth/  # sign-in state and route guards  [AuthProvider.jsx, RequireAdmin.jsx, RequireAuth.jsx, context.js, useAuth.js]
+│   │   ├── auth/  # sign-in state and route guards  [AuthProvider.jsx, context.js, RequireAdmin.jsx, RequireAuth.jsx, useAuth.js]
 │   │   ├── components/  # shared UI pieces
 │   │   │   ├── AsyncCard.jsx
 │   │   │   ├── AtRiskStudents.jsx
@@ -111,7 +125,9 @@ student-analytics/
 │   │   │   ├── CourseDifficulty.jsx
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── Filters.jsx
-│   │   ├── InsightsCard.jsx
+│   │   │   ├── InsightsCard.jsx
+│   │   │   ├── InterventionForm.jsx
+│   │   │   ├── InterventionsPanel.jsx
 │   │   │   ├── Leaderboard.jsx
 │   │   │   ├── NameForm.jsx
 │   │   │   ├── Pagination.jsx
@@ -125,6 +141,7 @@ student-analytics/
 │   │   │   ├── AccountPage.jsx
 │   │   │   ├── AuditPage.jsx
 │   │   │   ├── CoursesPage.jsx
+│   │   │   ├── FollowUpsPage.jsx
 │   │   │   ├── ImportPage.jsx
 │   │   │   ├── LoginPage.jsx
 │   │   │   ├── NewStudentPage.jsx
@@ -134,21 +151,25 @@ student-analytics/
 │   │   │   ├── StudentsPage.jsx
 │   │   │   └── UsersPage.jsx
 │   │   ├── styles/  # all CSS, light and dark themes  [dashboard.css]
-│   │   ├── utils/  # filtering, sorting, grades, CSV, validation (+ unit tests)  [csv.js, csv.test.js, grades.js, grades.test.js, students.js, students.test.js, validate.js, validate.test.js]
+│   │   ├── utils/  # filtering, sorting, grades, CSV, validation (+ unit tests)  [csv.js, csv.test.js, grades.js, grades.test.js, interventions.js, interventions.test.js, roles.js, students.js, students.test.js, validate.js, validate.test.js, viewState.js, viewState.test.js]
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .dockerignore
 │   ├── .env.example
 │   ├── .env.production
 │   ├── Dockerfile
+│   ├── eslint.config.js
 │   ├── index.html
-│   └── README.md
+│   ├── playwright.config.js  # starts a throwaway backend + website for the browser tests
+│   ├── README.md
+│   └── vitest.config.js  # keeps the unit-test runner away from the browser tests
 ├── .env.example  # production settings template
 ├── .gitignore
 ├── backup.sh  # database backup script
 ├── Caddyfile  # HTTPS, security headers, /api proxy, static site
 ├── docker-compose.yml  # production stack: web + backend + volumes
 ├── netlify.toml  # website build settings for Netlify (demo hosting)
+├── README.md
 └── render.yaml  # API settings for Render (demo hosting)
 ```
 
@@ -202,7 +223,8 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | `ADMIN_USERNAME` | `admin` | First-run administrator (only used while there are no users) |
 | `ADMIN_PASSWORD` | *(random, printed once)* | First-run administrator password, minimum 10 characters |
 | `DEMO_VIEWER_USERNAME` / `DEMO_VIEWER_PASSWORD` | *(none)* | Optional read-only account created on first run, for sharing a demo without the admin login |
-| `PORT` | `8000` in Docker | Port the container listens on; hosting platforms such as Render set it themselves |
+| `PORT` | `8000` in Docker, `5000` for `python app.py` | Port to listen on; hosting platforms such as Render set it themselves |
+| `FLASK_DEBUG` | `1` | `python app.py` only: set `0` to turn off debug mode and auto-reload (the browser tests do) |
 | `SEED_DEMO_DATA` | `1` locally, `0` in Docker | Fill an empty database with fake students |
 | `DATABASE` | `students.db` | Path of the SQLite file |
 | `PASS_MARK` | `60` | Passing score |
@@ -223,17 +245,20 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 
 | Role | Can do |
 |------|--------|
-| **Viewer** | See every dashboard and student, export CSV, change own password |
-| **Administrator** | Everything a viewer can, plus add/edit/delete students and results, import CSV, manage users, read the audit log |
+| **Viewer** | See every dashboard, student and follow-up, export CSV, change own password |
+| **Staff** | Everything a viewer can, plus record, edit and complete follow-ups |
+| **Administrator** | Everything staff can, plus delete follow-ups, add/edit/delete students and results, import CSV, manage users, read the audit log |
 
 - Permissions are enforced **on the server**, not just hidden in the interface.
 - Passwords: minimum 10 characters, hashed (scrypt). Changing a password, role or status signs that user out everywhere.
 - Five wrong passwords for a username locks it for a minute. Messages never reveal whether a username exists.
 - Administrators can't change their own role or status, so at least one administrator always remains.
 - Accounts are deactivated rather than deleted, so the audit log always makes sense.
+- Follow-up notes can be sensitive. Every signed-in user can read them, so give viewer accounts only to people who should see them,
+  and tell staff to keep notes factual.
 - API responses are marked non-cacheable; the production proxy adds HTTPS, HSTS and a strict Content-Security-Policy.
 - Command line (inside `backend/`, or `docker compose exec backend ...` in production):
-  `python manage.py create-user alice --role admin` and `python manage.py set-password alice`.
+  `python manage.py create-user alice --role staff` (roles: `admin`, `staff`, `viewer`) and `python manage.py set-password alice`.
 
 **Student records are personal data.** Before real use, decide who may have accounts, make sure the people whose
 data you hold are covered by your institution's data-protection rules, keep backups somewhere private, and only
@@ -247,8 +272,9 @@ The full reference, with request and response shapes, is in [`backend/README.md`
 | Area | Endpoints |
 |------|-----------|
 | Sign-in | `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/change-password` |
-| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend`, `/api/insights` |
-| Write (admin) | `POST/PUT/DELETE /api/students…`, `POST /api/students/<id>/records`, `PUT/DELETE /api/records/<id>`, `POST /api/import` |
+| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend`, `/api/insights`, `/api/interventions`, `/api/students/<id>/interventions` |
+| Write (staff or admin) | `POST /api/students/<id>/interventions`, `PATCH /api/interventions/<id>` |
+| Write (admin) | `POST/PUT/DELETE /api/students…`, `POST /api/students/<id>/records`, `PUT/DELETE /api/records/<id>`, `DELETE /api/interventions/<id>`, `POST /api/import` |
 | Admin | `GET/POST /api/users`, `PATCH /api/users/<id>`, `GET /api/audit` |
 
 Errors are JSON: `{ "error": "...", "message": "..." }` with the matching HTTP status.
@@ -262,7 +288,7 @@ In the app: **Import data** in the sidebar, which also offers a template downloa
 ## Testing
 
 ```bash
-# Backend: 64 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS, demo accounts)
+# Backend: 81 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS, demo accounts, follow-ups, database migration)
 cd backend && python3 -m unittest discover -s tests -v
 
 # Frontend: unit tests for filtering, sorting, paging, grades, CSV and form validation
@@ -270,8 +296,102 @@ cd frontend && npm install -D vitest      # once, if not already installed
 npm test                                  # runs "vitest run"
 ```
 
-> The frontend screens themselves have no automated tests yet. Use the [release checklist](#release-checklist-and-tagging-v100)
-> after every change.
+### Unit tests (Vitest)
+
+```bash
+cd frontend
+npm test            # or: npx vitest run
+```
+
+These are the `src/**/*.test.js` files (filtering, sorting, paging, grades, CSV, form validation, the Students page's address mapping).
+`vitest.config.js` limits Vitest to those files; the browser tests in `e2e/` use a different runner and are run with `npm run test:e2e`.
+
+### Browser tests (Playwright)
+
+37 tests drive a real Chromium browser through the actual screens: sign-in and permissions (viewer, staff, administrator),
+adding, editing and deleting students and results, filters, sorting, paging and CSV export, CSV import, follow-ups, user
+management, changing your password, dark mode, the phone menu, and a smoke test that opens every page and fails on any
+JavaScript error.
+
+They start their **own** backend (empty database, port 5100) and website (port 5273), so they never touch your running
+app or your data. Every test creates its own uniquely named records.
+
+```bash
+cd frontend
+npm install -D @playwright/test
+npx playwright install chromium            # downloads the test browser (about 150 MB), once
+npm pkg set scripts.test:e2e="playwright test"
+
+npm run test:e2e                           # run everything (builds the site first, then about a minute)
+npx playwright test e2e/auth.spec.js       # one file
+npx playwright test --ui                   # interactive runner: step through, see each screen
+npx playwright show-report                 # HTML report after a run (traces and screenshots of failures)
+```
+
+- The tests run against a **production build** of the site (fast and stable, like the real thing), built into `e2e/.tmp`. For
+  debugging you can use the slower Vite dev server instead: `E2E_DEV=1 npx playwright test`.
+- Needs the backend's virtual environment (`backend/.venv`) to exist, and ports 5100 and 5273 to be free.
+  Set `E2E_PYTHON` to use a different Python.
+- **When something fails**, the details are saved to `frontend/e2e-failures.txt` (which test, whether it failed or *timed out*,
+  and the error with the line of code). Paste that file when asking for help. `npx playwright show-report` adds screenshots.
+- On a fresh Linux machine, if Chromium won't start, run `npx playwright install --with-deps chromium` (asks for sudo).
+- Add a test for every feature you build; copy the style of the files in `frontend/e2e/`.
+
+Run all three before releasing, then work through the [release checklist](#release-checklist-and-tagging-v100)
+for the things automated tests can't judge (how the charts look, how it feels on your phone).
+
+## Automatic checks (CI)
+
+Every time you push to `main` or `dev`, and on every pull request, GitHub runs the checks in
+`.github/workflows/ci.yml` on its own servers. You don't have to remember to run anything.
+
+| Check | What it does | Runs |
+|-------|--------------|------|
+| **Backend tests** | all the API tests | always |
+| **Frontend** | lint (reported, not blocking yet), the unit tests, and a production build | always |
+| **Browser tests** | the Playwright suite in a real Chromium; a report with screenshots is kept for 7 days when something fails | always |
+| **Production stack (Docker)** | builds the real Docker setup, starts it, and checks the website, deep links, security headers, sign-in, that student data needs a login, and that the backend isn't reachable directly | pushes to `main` and pull requests into `main` |
+
+**Where to see results:** the **Actions** tab of your GitHub repository, or the green tick / red cross next to each commit
+and pull request. A red cross means a check failed: open it, then the failed step, to read the message. For a failed
+browser test, download the **playwright-report** file at the bottom of the run's page.
+
+**What you do:** nothing special. Work on `dev` as usual and push. When the checks are green, merge into `main`.
+
+**One-time setup**
+1. Make sure the test tools are recorded in the project and committed (the CI installs exactly what `package-lock.json` lists):
+   ```bash
+   cd frontend
+   npm install -D vitest @playwright/test      # harmless if already installed
+   git add package.json package-lock.json
+   ```
+2. Commit and push the new `.github/` folder. The first run starts immediately; watch it on the **Actions** tab.
+3. **Recommended:** stop broken changes reaching `main`. On GitHub open Settings, then Branches (or Rules), add a rule for
+   `main`, and tick "Require status checks to pass before merging", choosing *Backend tests*, *Frontend*, *Browser tests* and
+   *Production stack (Docker)*. Pull requests can then only be merged when they are green. (Private repositories on the free GitHub
+   plan may not offer this rule; the checks still run and show.)
+4. Optional: show the status in this README by adding, with your own names filled in:
+   `![CI](https://github.com/YOUR-NAME/student-analytics/actions/workflows/ci.yml/badge.svg)`
+
+**If a check fails**
+- *Frontend, "Lint" step shows warnings or errors:* it is set to report without failing, because the lint rules have never run
+  against this code. Fix what it lists (or paste it to me), and once it is clean delete the `continue-on-error: true` line so it
+  becomes a real gate.
+- *`npm ci` fails with "package.json and package-lock.json are not in sync":* run `npm install` in `frontend/` and commit both files.
+- *Browser tests pass on your computer but fail on GitHub:* download the report and open the trace; usually a slow step, which
+  the config already retries once on CI. Locally, a failure that says *TIMED OUT* in `e2e-failures.txt` means the machine was too
+  slow for a limit, not that the app is wrong.
+- *Docker job fails at "Wait until the site answers":* the log printed below it shows why (for example a typo in `Caddyfile`).
+  This is the same stack you would deploy, so fixing it here fixes your server too.
+
+**Dependency updates:** `.github/dependabot.yml` makes GitHub open a pull request each week for newer versions of the tools you
+depend on. Each one runs these same checks, so if they are green it is safe to merge. If you'd rather not get them, delete that file.
+
+**Running the same checks yourself** before pushing (this is all CI does):
+```bash
+cd backend && python3 -m unittest discover -s tests && cd ..
+cd frontend && npm run lint && npx vitest run && npm run build && npm run test:e2e
+```
 
 ## Deployment
 
@@ -359,7 +479,7 @@ The settings files are `render.yaml` and `netlify.toml` in the project root. A r
 
 ## Release checklist and tagging v1.0.0
 
-Tick these on the deployed site (or locally) before calling it version 1:
+Make sure the CI checks on `main` are green (or run the three test suites yourself). Then tick these on the deployed site (or locally):
 
 - [ ] Open the site address: you land on the sign-in page; a wrong password shows a clear error.
 - [ ] Sign in as admin; the Overview shows numbers, three charts and the three lists (with `SEED_DEMO_DATA=0` they are empty until you add data).
@@ -394,7 +514,9 @@ git tag -a v1.0.0 -m "Version 1.0.0"
 - No "forgot password" email: an administrator resets passwords (Users page or `manage.py`).
 - No two-factor sign-in, and sign-in uses a token held in the browser tab; anyone who can run script in the page
   (for example through a malicious browser extension) could read it. The strict Content-Security-Policy reduces this risk.
-- No UI tests; screens are verified manually with the release checklist.
+- The CI lint step reports but doesn't block until the first clean lint (see *Automatic checks (CI)*).
+- Browser tests cover the main journeys but not how the charts look (they are drawn by a library): check those by eye.
+- Follow-ups have no reminders or notifications: staff find work on the Follow-ups screen. Everyone signed in can read every note.
 - Pass mark and grade bands live in two places (frontend and backend) and must be changed together.
 
 ## Roadmap
@@ -402,12 +524,12 @@ git tag -a v1.0.0 -m "Version 1.0.0"
 Ideas for later versions, roughly by value:
 
 1. Server-side filtering and paging (needed for large datasets).
-2. Automated browser tests for the main journeys (sign-in, import, add student).
+2. Visual checks for the charts, which the browser tests can't judge.
 3. Per-course and per-semester comparison views, and emailed alerts when a student drops sharply.
-4. Student notes and intervention tracking for at-risk students.
+4. Follow-up reminders by email, and a "restricted" option so sensitive follow-ups are visible only to counsellors.
 5. Email password reset and optional two-factor sign-in.
 6. PostgreSQL option for multi-server setups.
-7. CI pipeline running both test suites on every change.
+7. Hold the live demo's redeploy until the CI checks pass (Render has an Auto-Deploy setting for this; Netlify deploys on every push to `main`, so only merge green changes).
 
 ## Troubleshooting
 
@@ -429,6 +551,18 @@ Ideas for later versions, roughly by value:
 
 ## Version history
 
+### 1.1.0 (in development)
+
+- **Intervention tracking:** record follow-ups per student, a Follow-ups screen with open and overdue items, and a list of at-risk students with no follow-up. New insight and Overview badge for unattended at-risk students.
+- **Staff role:** can record follow-ups without being able to change grades or manage users. Existing databases are upgraded automatically on the next start (the users table is rebuilt; accounts and passwords are kept).
+- Demo data now includes sample follow-ups.
+- **Fixed:** `vitest` also tried to run the browser tests (`e2e/*.spec.js`) and failed on them, so the CI unit-test step failed; `vitest.config.js` now limits it to `src/**/*.test.js`.
+- **Browser test suite** (37 Playwright tests, run against a production build with generous timeouts; failures are written to `e2e-failures.txt`) covering sign-in, permissions, data entry, import, follow-ups, users, theme and the phone layout.
+- **Fixed:** on a phone, tables with action links (Courses, student results, Users) made the whole page scroll sideways. Found by the new browser tests.
+- **Fixed:** on the Students page, the filter controls could snap back or drop typed characters when the router was slow to apply address changes (found by running the browser tests on a slow laptop, reproduced and fixed here). The page now keeps its view in its own state, so controls react instantly, and mirrors it into the address so filtered views can still be bookmarked and shared.
+- `python app.py` now honours `PORT` and `FLASK_DEBUG` (used by the browser tests).
+- **Automatic checks on every push and pull request** (GitHub Actions): backend tests, frontend lint, unit tests and build, browser tests, and a smoke test of the real Docker production stack on `main`. Weekly dependency-update pull requests (Dependabot).
+
 ### 1.0.0 (2026-10-08)
 
 First complete release.
@@ -440,4 +574,4 @@ First complete release.
 - Light/dark theme, mobile layout, accessibility work.
 - Docker + Caddy production setup with automatic HTTPS, security headers and a backup script.
 - Free demo hosting setup (Render API + Netlify website) with an optional read-only demo account.
-- 64 backend tests and frontend unit tests.
+- 81 backend tests and frontend unit tests.

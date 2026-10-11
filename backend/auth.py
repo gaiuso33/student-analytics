@@ -69,6 +69,17 @@ def admin_required(view):
     return wrapper
 
 
+def staff_required(view):
+    """Staff and administrators (people who may record follow-ups)."""
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        if g.user["role"] not in ("admin", "staff"):
+            return error(403, "forbidden", "You don't have permission to do that.")
+        return view(*args, **kwargs)
+
+    return wrapper
+
+
 # ---------- audit ----------
 def audit(action, detail="", username=None):
     if username is None:
