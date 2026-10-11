@@ -160,8 +160,9 @@ student-analytics/
 │   ├── Dockerfile
 │   ├── eslint.config.js
 │   ├── index.html
-│   ├── playwright.config.js  # starts a throwaway backend + dev server for the tests
-│   └── README.md
+│   ├── playwright.config.js  # starts a throwaway backend + website for the browser tests
+│   ├── README.md
+│   └── vitest.config.js  # keeps the unit-test runner away from the browser tests
 ├── .env.example  # production settings template
 ├── .gitignore
 ├── backup.sh  # database backup script
@@ -294,6 +295,16 @@ cd backend && python3 -m unittest discover -s tests -v
 cd frontend && npm install -D vitest      # once, if not already installed
 npm test                                  # runs "vitest run"
 ```
+
+### Unit tests (Vitest)
+
+```bash
+cd frontend
+npm test            # or: npx vitest run
+```
+
+These are the `src/**/*.test.js` files (filtering, sorting, paging, grades, CSV, form validation, the Students page's address mapping).
+`vitest.config.js` limits Vitest to those files; the browser tests in `e2e/` use a different runner and are run with `npm run test:e2e`.
 
 ### Browser tests (Playwright)
 
@@ -545,6 +556,7 @@ Ideas for later versions, roughly by value:
 - **Intervention tracking:** record follow-ups per student, a Follow-ups screen with open and overdue items, and a list of at-risk students with no follow-up. New insight and Overview badge for unattended at-risk students.
 - **Staff role:** can record follow-ups without being able to change grades or manage users. Existing databases are upgraded automatically on the next start (the users table is rebuilt; accounts and passwords are kept).
 - Demo data now includes sample follow-ups.
+- **Fixed:** `vitest` also tried to run the browser tests (`e2e/*.spec.js`) and failed on them, so the CI unit-test step failed; `vitest.config.js` now limits it to `src/**/*.test.js`.
 - **Browser test suite** (37 Playwright tests, run against a production build with generous timeouts; failures are written to `e2e-failures.txt`) covering sign-in, permissions, data entry, import, follow-ups, users, theme and the phone layout.
 - **Fixed:** on a phone, tables with action links (Courses, student results, Users) made the whole page scroll sideways. Found by the new browser tests.
 - **Fixed:** on the Students page, the filter controls could snap back or drop typed characters when the router was slow to apply address changes (found by running the browser tests on a slow laptop, reproduced and fixed here). The page now keeps its view in its own state, so controls react instantly, and mirrors it into the address so filtered views can still be bookmarked and shared.

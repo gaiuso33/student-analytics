@@ -9,7 +9,7 @@ __pycache__/
 *.db-wal
 *.db-shm
 backups/
-
+*.zip
 # browser tests
 test-results/
 playwright-report/
