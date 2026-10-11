@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { request } from "../api/client";
 import { useAuth } from "../auth/useAuth";
+import { roleLabel } from "../utils/roles";
 import { validatePassword } from "../utils/validate";
 
 function AccountPage() {
-  const { user, isAdmin, updateSession } = useAuth();
+  const { user, updateSession } = useAuth();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -46,7 +47,7 @@ function AccountPage() {
       <section className="card form-card">
         <p>
           Signed in as <strong>{user.username}</strong>{" "}
-          <span className="badge badge--ok">{isAdmin ? "Administrator" : "Viewer"}</span>
+          <span className="badge badge--ok">{roleLabel(user.role)}</span>
         </p>
 
         <h2>Change password</h2>

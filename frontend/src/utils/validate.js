@@ -33,3 +33,12 @@ export function validateUsername(username) {
     ? null
     : "Username must be 3-32 characters: letters, numbers, dot, dash or underscore";
 }
+
+export function validateIntervention({ note, due }) {
+  const errors = {};
+  const text = note.trim();
+  if (!text) errors.note = "Write a short note about what was done or is planned";
+  else if (text.length > 1000) errors.note = "Note must be at most 1000 characters";
+  if (due && !/^\d{4}-\d{2}-\d{2}$/.test(due)) errors.due = "Choose a valid date";
+  return errors;
+}

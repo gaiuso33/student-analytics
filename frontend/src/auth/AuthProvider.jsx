@@ -42,7 +42,14 @@ function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ ...state, isAdmin: state.user?.role === "admin", signIn, signOut, updateSession }),
+    () => ({
+      ...state,
+      isAdmin: state.user?.role === "admin",
+      canRecord: state.user?.role === "admin" || state.user?.role === "staff", // may log follow-ups
+      signIn,
+      signOut,
+      updateSession,
+    }),
     [state, signIn, signOut, updateSession]
   );
 

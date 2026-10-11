@@ -1,4 +1,5 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import Filters from "../components/Filters";
 import Pagination from "../components/Pagination";
 import StudentTable from "../components/StudentTable";
@@ -6,47 +7,43 @@ import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
 import { downloadCsv, studentsToCsv } from "../utils/csv";
 import { distinctValues, filterStudents, paginate, sortStudents } from "../utils/students";
-
-const PAGE_SIZES = [10, 25, 50, 100];
-const DEFAULT_SIZE = 25;
+import { PAGE_SIZES, readView, toQuery } from "../utils/viewState";
 
 function StudentsPage() {
   const { isAdmin } = useAuth();
   const { data, loading, error, refetch } = useFetch("/api/students");
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const all = data ?? [];
 
-  // All view state lives in the URL, so filtered views can be bookmarked and shared.
-  const filters = {
-    search: params.get("search") ?? "",
-    course: params.get("course") ?? "",
-    semester: params.get("semester") ?? "",
-    min: params.get("min") ?? "",
-    max: params.get("max") ?? "",
-    risk: params.get("risk") === "1" ? "1" : "",
-  };
-  const sortConfig = {
-    key: params.get("sort"),
-    direction: params.get("dir") === "desc" ? "desc" : "asc",
-  };
-  const sizeParam = Number(params.get("size"));
-  const size = PAGE_SIZES.includes(sizeParam) ? sizeParam : DEFAULT_SIZE;
-  const page = Math.max(1, Number(params.get("page")) || 1);
-
-  function update(patch, { resetPage = true } = {}) {
-    setParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        Object.entries(patch).forEach(([key, value]) => {
-          if (value === "" || value === null || value === undefined) next.delete(key);
-          else next.set(key, String(value));
-        });
-        if (resetPage) next.delete("page");
-        return next;
-      },
-      { replace: true }
-    );
+  // The view (filters, sort, page) is kept in this component's own state so every control reacts at once.
+  // The page address is a mirror of it, so filtered views can still be bookmarked and shared.
+  // (Reading the values back from the address on every change made controls snap back and drop typed
+  // characters, because the router applies address changes a moment late.)
+  const [view, setView] = useState(() => readView(params));
+  const [seenKey, setSeenKey] = useState(location.key);
+  if (location.key !== seenKey) {
+    // The address changed. If it was not our own mirror write (a link or the sidebar sent us here), follow it.
+    setSeenKey(location.key);
+    if (!location.state?.mirror) setView(readView(params));
   }
+
+  function change(patch, { resetPage = true } = {}) {
+    const next = { ...view, ...patch, ...(resetPage ? { page: 1 } : {}) };
+    setView(next);
+    setParams(toQuery(next), { replace: true, state: { mirror: true } });
+  }
+
+  const filters = {
+    search: view.search,
+    course: view.course,
+    semester: view.semester,
+    min: view.min,
+    max: view.max,
+    risk: view.risk,
+  };
+  const sortConfig = { key: view.sort || null, direction: view.dir };
+  const { page, size } = view;
 
   const courses = distinctValues(all, "course");
   const semesters = distinctValues(all, "semester");
@@ -85,7 +82,7 @@ function StudentsPage() {
         <>
           <Filters
             filters={filters}
-            onChange={(patch) => update(patch)}
+            onChange={(patch) => change(patch)}
             courses={courses}
             semesters={semesters}
             resultCount={filtered.length}
@@ -94,7 +91,7 @@ function StudentsPage() {
           <StudentTable
             students={paged.items}
             sortConfig={sortConfig}
-            setSortConfig={({ key, direction }) => update({ sort: key, dir: direction }, { resetPage: false })}
+            setSortConfig={({ key, direction }) => change({ sort: key, dir: direction }, { resetPage: false })}
           />
           <Pagination
             page={paged.page}
@@ -103,8 +100,8 @@ function StudentsPage() {
             start={paged.start}
             size={size}
             sizes={PAGE_SIZES}
-            onPage={(p) => update({ page: p }, { resetPage: false })}
-            onSize={(s) => update({ size: s === DEFAULT_SIZE ? "" : s })}
+            onPage={(p) => change({ page: p }, { resetPage: false })}
+            onSize={(s) => change({ size: s })}
           />
         </>
       )}

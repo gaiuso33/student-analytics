@@ -1,3 +1,4 @@
+import os
 import re
 import secrets
 
@@ -6,6 +7,7 @@ from flask import Flask, jsonify, request
 import auth
 import importer
 import insights
+import interventions
 import users
 import write
 from config import Config
@@ -47,6 +49,7 @@ def create_app(test_config=None):
     app.register_blueprint(write.bp)
     app.register_blueprint(importer.bp)
     app.register_blueprint(insights.bp)
+    app.register_blueprint(interventions.bp)
     app.register_blueprint(users.bp)
 
     # ---------- CORS (no extra dependency) ----------
@@ -177,10 +180,18 @@ def create_app(test_config=None):
 
     @app.get("/api/at-risk-students")
     def at_risk():
-        """Students whose cumulative GPA is below AT_RISK_GPA, lowest first."""
+        """Students whose cumulative GPA is below AT_RISK_GPA, lowest first,
+        with how many follow-ups are still open for each."""
         rows = get_db().execute(
-            f"SELECT id, name, gpa, failing_courses FROM ({STUDENT_GPA}) "
-            "WHERE gpa < :threshold ORDER BY gpa ASC, name",
+            f"""
+            SELECT sg.id, sg.name, sg.gpa, sg.failing_courses,
+                   (SELECT COUNT(*) FROM interventions i
+                     WHERE i.student_id = sg.id AND i.status = 'open') AS open_interventions,
+                   (SELECT MAX(i.created_at) FROM interventions i
+                     WHERE i.student_id = sg.id) AS last_intervention
+            FROM ({STUDENT_GPA}) AS sg
+            WHERE sg.gpa < :threshold ORDER BY sg.gpa ASC, sg.name
+            """,
             {**params(), "threshold": app.config["AT_RISK_GPA"]},
         ).fetchall()
         return jsonify([dict(r) for r in rows])
@@ -248,4 +259,9 @@ def create_app(test_config=None):
 
 if __name__ == "__main__":
     # Local development server: debug mode, and any localhost port may call the API.
-    create_app({"CORS_ALLOW_ANY_LOCALHOST": True}).run(host="127.0.0.1", port=5000, debug=True)
+    # PORT and FLASK_DEBUG=0 are used by the browser tests (frontend/e2e) to run a throwaway copy.
+    create_app({"CORS_ALLOW_ANY_LOCALHOST": True}).run(
+        host="127.0.0.1",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=os.environ.get("FLASK_DEBUG", "1") != "0",
+    )

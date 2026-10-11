@@ -93,6 +93,42 @@ def get_insights():
                 "students": _student_list(improving),
             })
 
+    # At-risk students and whether anyone is following them up
+    at_risk_threshold = current_app.config["AT_RISK_GPA"]
+    total_at_risk = db.execute(
+        "SELECT COUNT(*) FROM (SELECT student_id FROM record_points GROUP BY student_id "
+        "HAVING ROUND(AVG(points), 2) < ?)",
+        (at_risk_threshold,),
+    ).fetchone()[0]
+    if total_at_risk:
+        unattended = db.execute(
+            """
+            SELECT s.id, s.name, ROUND(AVG(p.points), 2) AS gpa
+            FROM students s JOIN record_points p ON p.student_id = s.id
+            GROUP BY s.id
+            HAVING ROUND(AVG(p.points), 2) < ?
+               AND NOT EXISTS (SELECT 1 FROM interventions i WHERE i.student_id = s.id AND i.status = 'open')
+            ORDER BY gpa ASC, s.name
+            """,
+            (at_risk_threshold,),
+        ).fetchall()
+        if unattended:
+            out.append({
+                "id": "unattended-at-risk", "tone": "warning",
+                "text": f"{len(unattended)} of {total_at_risk} at-risk "
+                        f"{'student has' if total_at_risk == 1 else 'students have'} no open follow-up.",
+                "students": _student_list([
+                    {"id": r["id"], "name": r["name"], "detail": f"GPA {r['gpa']:.2f}"} for r in unattended
+                ]),
+                "link": "/interventions",
+            })
+        else:
+            out.append({
+                "id": "unattended-at-risk", "tone": "positive",
+                "text": f"All {total_at_risk} at-risk {'student has' if total_at_risk == 1 else 'students have'} an open follow-up.",
+                "link": "/interventions",
+            })
+
     # Course with the lowest pass rate overall (needs at least two courses to be a comparison)
     courses = db.execute(
         "SELECT course, 100.0 * SUM(CASE WHEN score >= ? THEN 1 ELSE 0 END) / COUNT(*) AS rate "

@@ -1,0 +1,373 @@
+[WebServer] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+[WebServer]  * Running on http://127.0.0.1:5100
+[WebServer] Press CTRL+C to quit
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:29] "GET /api/health HTTP/1.1" 200 -
+
+Running 5 tests using 1 worker
+
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:46] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:46] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:47] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:49] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:49] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:49] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:50] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:52] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:53] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:53] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:53] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:53] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "OPTIONS /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "OPTIONS /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:55] "GET /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:57] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:57] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "OPTIONS /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "OPTIONS /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "GET /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:08:58] "GET /api/at-risk-students HTTP/1.1" 200 -
+  ✓  1 [chromium] › e2e/layout.spec.js:49:3 › on a phone › pages do not scroll sideways (18.1s)
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:00] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:00] "POST /api/import HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:05] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:05] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:06] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:09] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:09] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:09] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:09] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:09] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:10] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:14] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:17] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:17] "OPTIONS /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:17] "OPTIONS /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:17] "GET /api/courses HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:19] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:19] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:19] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:19] "OPTIONS /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:20] "OPTIONS /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:20] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:20] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:20] "GET /api/interventions?status=open HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:20] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:22] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:22] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:24] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:24] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:24] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:24] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:24] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "OPTIONS /api/audit?limit=200 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "OPTIONS /api/audit?limit=200 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:27] "GET /api/audit?limit=200 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:29] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:29] "GET /api/auth/me HTTP/1.1" 200 -
+  ✘  2 [chromium] › e2e/smoke.spec.js:4:1 › every page opens without JavaScript errors (32.7s)
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:39] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:39] "POST /api/import HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:44] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:44] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:45] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:47] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:47] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:47] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:48] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:48] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:09:48] "GET /api/students HTTP/1.1" 200 -
+  ✘  3 [chromium] › e2e/students.spec.js:85:3 › the students list › search, score range, at-risk filter, sorting and URL state (15.0s)
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:04] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:05] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:05] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:06] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:11] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:11] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:11] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:13] "POST /api/users HTTP/1.1" 201 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:13] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:18] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:19] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:19] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:19] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:19] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:19] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:20] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:21] "OPTIONS /api/users/2 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:21] "PATCH /api/users/2 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:21] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:21] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:25] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:26] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:26] "GET /api/auth/me HTTP/1.1" 401 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:26] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:27] "POST /api/auth/login HTTP/1.1" 401 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:28] "OPTIONS /api/users/2 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:28] "PATCH /api/users/2 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:28] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:28] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:30] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:30] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:30] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:30] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:31] "GET /api/students HTTP/1.1" 200 -
+  ✘  4 [chromium] › e2e/users.spec.js:7:3 › user management (administrator) › create a staff account, sign in as them, then deactivate them (33.8s)
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:42] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:43] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:44] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:46] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:46] "OPTIONS /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:46] "GET /api/auth/me HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:47] "OPTIONS /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:47] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:48] "POST /api/users HTTP/1.1" 201 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:49] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:49] "OPTIONS /api/users/3 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:49] "PATCH /api/users/3 HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:49] "GET /api/users HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:55] "OPTIONS /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "POST /api/auth/login HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:56] "OPTIONS /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/top-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/insights HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/analytics HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/course-difficulty HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/at-risk-students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/students HTTP/1.1" 200 -
+[WebServer] 127.0.0.1 - - [11/Oct/2026 13:10:57] "GET /api/analytics HTTP/1.1" 200 -
+  ✓  5 [chromium] › e2e/users.spec.js:47:3 › user management (administrator) › a changed role takes effect and the admin row has no controls (24.4s)
+
+
+  1) [chromium] › e2e/smoke.spec.js:4:1 › every page opens without JavaScript errors ───────────────
+
+    Test timeout of 30000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/smoke-every-page-opens-without-JavaScript-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/smoke-every-page-opens-without-JavaScript-errors-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/smoke-every-page-opens-without-JavaScript-errors-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/smoke-every-page-opens-without-JavaScript-errors-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e/students.spec.js:85:3 › the students list › search, score range, at-risk filter, sorting and URL state 
+
+    Error: locator.check: Clicking the checkbox did not change its state
+    Call log:
+      - waiting for getByLabel('At-risk students only')
+        - locator resolved to <input id="f-risk" type="checkbox"/>
+      - attempting click action
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+        - performing click action
+        - click action done
+        - waiting for scheduled navigations to finish
+        - navigations have finished
+
+
+      112 |     // At-risk only, with the badge in the row
+      113 |     await page.getByLabel("Max score").fill("");
+    > 114 |     await page.getByLabel("At-risk students only").check();
+          |                                                    ^
+      115 |     await expect(page.getByRole("link", { name: gamma })).toBeVisible();
+      116 |     await expect(page.getByRole("link", { name: alpha })).toHaveCount(0);
+      117 |     await expect(page.locator("tbody tr").filter({ hasText: gamma })).toContainText("At risk");
+        at /home/og/Documents/projects/student-analytics/frontend/e2e/students.spec.js:114:52
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/students-the-students-list-1751f-ilter-sorting-and-URL-state-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/students-the-students-list-1751f-ilter-sorting-and-URL-state-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/students-the-students-list-1751f-ilter-sorting-and-URL-state-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/students-the-students-list-1751f-ilter-sorting-and-URL-state-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e/users.spec.js:7:3 › user management (administrator) › create a staff account, sign in as them, then deactivate them 
+
+    Test timeout of 30000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/users-user-management-admi-e8ce4-s-them-then-deactivate-them-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/users-user-management-admi-e8ce4-s-them-then-deactivate-them-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/users-user-management-admi-e8ce4-s-them-then-deactivate-them-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/users-user-management-admi-e8ce4-s-them-then-deactivate-them-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/users-user-management-admi-e8ce4-s-them-then-deactivate-them-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › e2e/smoke.spec.js:4:1 › every page opens without JavaScript errors ────────────────
+    [chromium] › e2e/students.spec.js:85:3 › the students list › search, score range, at-risk filter, sorting and URL state 
+    [chromium] › e2e/users.spec.js:7:3 › user management (administrator) › create a staff account, sign in as them, then deactivate them 
+  2 passed (2.7m)

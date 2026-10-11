@@ -7,6 +7,7 @@ import StudentsPage from "./pages/StudentsPage";
 import StudentDetailPage from "./pages/StudentDetailPage";
 import NewStudentPage from "./pages/NewStudentPage";
 import CoursesPage from "./pages/CoursesPage";
+import FollowUpsPage from "./pages/FollowUpsPage";
 import AccountPage from "./pages/AccountPage";
 import UsersPage from "./pages/UsersPage";
 import AuditPage from "./pages/AuditPage";
@@ -23,6 +24,7 @@ function App() {
         <Route path="/students" element={<StudentsPage />} />
         <Route path="/students/:id" element={<StudentDetailPage />} />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/interventions" element={<FollowUpsPage />} />
         <Route path="/account" element={<AccountPage />} />
 
         <Route element={<RequireAdmin />}>
