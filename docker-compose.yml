@@ -13,6 +13,16 @@ services:
       PASS_MARK: ${PASS_MARK:-60}
       AT_RISK_GPA: ${AT_RISK_GPA:-2.0}
       TOKEN_MAX_AGE: ${TOKEN_MAX_AGE:-28800}
+      # Reminder emails (optional). Nothing is sent unless SMTP_HOST is set and send-reminders is scheduled.
+      REMINDER_DAYS_AHEAD: ${REMINDER_DAYS_AHEAD:-2}
+      REMINDER_INCLUDE_NAMES: ${REMINDER_INCLUDE_NAMES:-0}
+      SITE_URL: ${SITE_URL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+      MAIL_FROM: ${MAIL_FROM:-}
       DATABASE: /data/students.db
     volumes:
       - students_data:/data

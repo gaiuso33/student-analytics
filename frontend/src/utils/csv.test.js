@@ -33,12 +33,12 @@ describe("toCsv", () => {
 describe("studentsToCsv", () => {
   it("adds a letter grade and leaves it blank for missing scores", () => {
     const csv = studentsToCsv([
-      { name: "Ada", course: "Math", semester: "2024-1", score: 91, gpa: 4, at_risk: false },
+      { name: "Ada", student_code: "ADM-1", class_name: "7A", course: "Math", semester: "2024-1", score: 91, gpa: 4, at_risk: false },
       { name: "Bola", course: "Math", semester: "2024-1", score: null, gpa: 2, at_risk: true },
     ]);
     const lines = csv.split("\r\n");
-    expect(lines[0]).toBe("Student,Course,Semester,Score,Grade,GPA,At risk");
-    expect(lines[1]).toBe("Ada,Math,2024-1,91,A,4,No");
-    expect(lines[2]).toBe("Bola,Math,2024-1,,,2,Yes");
+    expect(lines[0]).toBe("Student,Student ID,Class,Course,Semester,Score,Grade,GPA,At risk");
+    expect(lines[1]).toBe("Ada,ADM-1,7A,Math,2024-1,91,A,4,No");
+    expect(lines[2]).toBe("Bola,,,Math,2024-1,,,2,Yes");
   });
 });

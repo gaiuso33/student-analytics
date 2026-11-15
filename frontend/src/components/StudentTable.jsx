@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 
 const COLUMNS = [
   { key: "name", label: "Name" },
+  { key: "student_code", label: "ID" },
+  { key: "class_name", label: "Class" },
   { key: "course", label: "Course" },
   { key: "score", label: "Score" },
   { key: "semester", label: "Semester" },
@@ -53,6 +55,8 @@ function StudentTable({ students, sortConfig, setSortConfig }) {
                   )}
                   {s.at_risk && <span className="badge badge--alert badge--small">At risk</span>}
                 </td>
+                <td>{s.student_code ?? ""}</td>
+                <td>{s.class_name ?? ""}</td>
                 <td>{s.course}</td>
                 <td>{s.score}</td>
                 <td>{s.semester}</td>

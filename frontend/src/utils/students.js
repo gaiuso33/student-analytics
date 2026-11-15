@@ -6,15 +6,17 @@ const round = (n, dp = 1) => Math.round(n * 10 ** dp) / 10 ** dp;
  * Filter records. Keys: search (name or course), course, semester, min, max (score range),
  * risk ("1" keeps only records of at-risk students). Empty values are ignored.
  */
-export function filterStudents(students, { search = "", course = "", semester = "", min = "", max = "", risk = "" } = {}) {
+export function filterStudents(students, { search = "", course = "", semester = "", klass = "", min = "", max = "", risk = "" } = {}) {
   const q = search.trim().toLowerCase();
   const minScore = min === "" ? null : Number(min);
   const maxScore = max === "" ? null : Number(max);
 
   return students.filter((s) => {
-    if (q && !(s.name?.toLowerCase().includes(q) || s.course?.toLowerCase().includes(q))) return false;
+    if (q && !(s.name?.toLowerCase().includes(q) || s.course?.toLowerCase().includes(q)
+      || s.student_code?.toLowerCase().includes(q) || s.class_name?.toLowerCase().includes(q))) return false;
     if (course && s.course !== course) return false;
     if (semester && s.semester !== semester) return false;
+    if (klass && (s.class_name ?? "").toLowerCase() !== klass.toLowerCase()) return false;
     if (risk === "1" && s.at_risk !== true) return false;
     // A score bound excludes records with no score (null would otherwise coerce to 0 and pass a max filter)
     const hasBound = (minScore !== null && !Number.isNaN(minScore)) || (maxScore !== null && !Number.isNaN(maxScore));

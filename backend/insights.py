@@ -30,7 +30,7 @@ def get_insights():
     threshold = current_app.config["INSIGHT_GPA_CHANGE"]
     out = []
 
-    semesters = [r[0] for r in db.execute("SELECT DISTINCT semester FROM records ORDER BY semester")]
+    semesters = [r[0] for r in db.execute("SELECT DISTINCT semester FROM records_v ORDER BY semester")]
     latest = semesters[-1] if semesters else None
     previous = semesters[-2] if len(semesters) >= 2 else None
 
@@ -39,7 +39,7 @@ def get_insights():
         gpa_rows = db.execute(
             """
             SELECT p.student_id, s.name, p.semester, AVG(p.points) AS gpa
-            FROM record_points p JOIN students s ON s.id = p.student_id
+            FROM record_points_v p JOIN students_v s ON s.id = p.student_id
             WHERE p.semester IN (?, ?) GROUP BY p.student_id, p.semester
             """,
             (previous, latest),
@@ -59,7 +59,7 @@ def get_insights():
             r["semester"]: r["rate"]
             for r in db.execute(
                 "SELECT semester, 100.0 * SUM(CASE WHEN score >= ? THEN 1 ELSE 0 END) / COUNT(*) AS rate "
-                "FROM records WHERE semester IN (?, ?) GROUP BY semester",
+                "FROM records_v WHERE semester IN (?, ?) GROUP BY semester",
                 (pass_mark, previous, latest),
             )
         }
@@ -96,7 +96,7 @@ def get_insights():
     # At-risk students and whether anyone is following them up
     at_risk_threshold = current_app.config["AT_RISK_GPA"]
     total_at_risk = db.execute(
-        "SELECT COUNT(*) FROM (SELECT student_id FROM record_points GROUP BY student_id "
+        "SELECT COUNT(*) FROM (SELECT student_id FROM record_points_v GROUP BY student_id "
         "HAVING ROUND(AVG(points), 2) < ?)",
         (at_risk_threshold,),
     ).fetchone()[0]
@@ -104,10 +104,10 @@ def get_insights():
         unattended = db.execute(
             """
             SELECT s.id, s.name, ROUND(AVG(p.points), 2) AS gpa
-            FROM students s JOIN record_points p ON p.student_id = s.id
+            FROM students_v s JOIN record_points_v p ON p.student_id = s.id
             GROUP BY s.id
             HAVING ROUND(AVG(p.points), 2) < ?
-               AND NOT EXISTS (SELECT 1 FROM interventions i WHERE i.student_id = s.id AND i.status = 'open')
+               AND NOT EXISTS (SELECT 1 FROM interventions_v i WHERE i.student_id = s.id AND i.status = 'open')
             ORDER BY gpa ASC, s.name
             """,
             (at_risk_threshold,),
@@ -132,12 +132,12 @@ def get_insights():
     # Course with the lowest pass rate overall (needs at least two courses to be a comparison)
     courses = db.execute(
         "SELECT course, 100.0 * SUM(CASE WHEN score >= ? THEN 1 ELSE 0 END) / COUNT(*) AS rate "
-        "FROM records GROUP BY course ORDER BY rate ASC, course ASC",
+        "FROM records_v GROUP BY course ORDER BY rate ASC, course ASC",
         (pass_mark,),
     ).fetchall()
     if len(courses) >= 2:
         overall = db.execute(
-            "SELECT 100.0 * SUM(CASE WHEN score >= ? THEN 1 ELSE 0 END) / COUNT(*) FROM records", (pass_mark,)
+            "SELECT 100.0 * SUM(CASE WHEN score >= ? THEN 1 ELSE 0 END) / COUNT(*) FROM records_v", (pass_mark,)
         ).fetchone()[0]
         worst = courses[0]
         if worst["rate"] < 100 and worst["rate"] < courses[-1]["rate"]:

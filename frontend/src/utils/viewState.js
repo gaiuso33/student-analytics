@@ -9,6 +9,7 @@ export function readView(params) {
     search: params.get("search") ?? "",
     course: params.get("course") ?? "",
     semester: params.get("semester") ?? "",
+    klass: params.get("class") ?? "",
     min: params.get("min") ?? "",
     max: params.get("max") ?? "",
     risk: params.get("risk") === "1" ? "1" : "",
@@ -25,6 +26,7 @@ export function toQuery(view) {
   for (const key of ["search", "course", "semester", "min", "max"]) {
     if (view[key] !== "") query.set(key, view[key]);
   }
+  if (view.klass) query.set("class", view.klass);
   if (view.risk === "1") query.set("risk", "1");
   if (view.sort) {
     query.set("sort", view.sort);

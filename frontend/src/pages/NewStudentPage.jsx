@@ -5,8 +5,8 @@ import { request } from "../api/client";
 function NewStudentPage() {
   const navigate = useNavigate();
 
-  async function create(name) {
-    const student = await request("/api/students", { method: "POST", body: { name } });
+  async function create(name, details) {
+    const student = await request("/api/students", { method: "POST", body: { name, ...details } });
     navigate(`/students/${student.id}`); // then add their results on the next page
   }
 
@@ -17,7 +17,7 @@ function NewStudentPage() {
         <h1>Add student</h1>
       </header>
       <section className="card form-card">
-        <p className="state">You'll add their course results on the next page. A student appears in the records table once they have a result.</p>
+        <p className="state">You'll add their course results on the next page. A student appears in the records table once they have a result. Give students who share a name different student IDs so they can be told apart.</p>
         <NameForm submitLabel="Create student" onSubmit={create} onCancel={() => navigate("/students")} />
       </section>
     </div>

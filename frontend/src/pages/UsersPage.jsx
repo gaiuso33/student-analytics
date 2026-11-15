@@ -6,7 +6,7 @@ import { roleLabel } from "../utils/roles";
 import { validatePassword, validateUsername } from "../utils/validate";
 
 function CreateUserForm({ onCreated }) {
-  const [values, setValues] = useState({ username: "", password: "", role: "viewer" });
+  const [values, setValues] = useState({ username: "", password: "", role: "viewer", email: "" });
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const uid = useId();
@@ -21,9 +21,9 @@ function CreateUserForm({ onCreated }) {
     try {
       await request("/api/users", {
         method: "POST",
-        body: { username: values.username.trim(), password: values.password, role: values.role },
+        body: { username: values.username.trim(), password: values.password, role: values.role, email: values.email.trim() || null },
       });
-      setValues({ username: "", password: "", role: "viewer" });
+      setValues({ username: "", password: "", role: "viewer", email: "" });
       onCreated();
     } catch (err) {
       setError(err.message);
@@ -41,6 +41,10 @@ function CreateUserForm({ onCreated }) {
       <div className="field">
         <label htmlFor={`${uid}-p`}>Temporary password</label>
         <input id={`${uid}-p`} type="password" value={values.password} onChange={set("password")} autoComplete="new-password" />
+      </div>
+      <div className="field">
+        <label htmlFor={`${uid}-e`}>Email (optional, for reminders)</label>
+        <input id={`${uid}-e`} type="email" value={values.email} onChange={set("email")} autoComplete="off" />
       </div>
       <div className="field">
         <label htmlFor={`${uid}-r`}>Role</label>
@@ -92,11 +96,76 @@ function ResetPasswordForm({ username, onSubmit, onCancel }) {
   );
 }
 
+function accessLabel(user) {
+  if (user.role === "admin" || user.scope !== "classes") return "All students";
+  return user.classes.length > 0 ? `Classes: ${user.classes.join(", ")}` : "No classes (sees nothing)";
+}
+
+/** Which students a staff member or viewer can see: everyone, or only certain classes. */
+function AccessForm({ user, onSubmit, onCancel }) {
+  const { data: classes } = useFetch("/api/classes");
+  const [scope, setScope] = useState(user.scope);
+  const [chosen, setChosen] = useState(user.classes);
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
+  const names = [...new Set([...(classes ?? []).map((c) => c.name), ...user.classes])];
+  const toggle = (name) => setChosen((now) => (now.includes(name) ? now.filter((c) => c !== name) : [...now, name]));
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setPending(true);
+    try {
+      await onSubmit({ scope, classes: scope === "classes" ? chosen : user.classes });
+    } catch (err) {
+      setError(err.message);
+      setPending(false);
+    }
+  }
+
+  return (
+    <form className="form" onSubmit={handleSubmit}>
+      <fieldset className="radio-group">
+        <legend>What can {user.username} see?</legend>
+        <label>
+          <input type="radio" name={`scope-${user.id}`} checked={scope === "all"} onChange={() => setScope("all")} />
+          All students
+        </label>
+        <label>
+          <input type="radio" name={`scope-${user.id}`} checked={scope === "classes"} onChange={() => setScope("classes")} />
+          Only students in these classes
+        </label>
+      </fieldset>
+      {scope === "classes" && (
+        <fieldset className="radio-group">
+          <legend>Classes</legend>
+          {names.length === 0 ? (
+            <p className="muted">There are no classes yet. Give students a class first.</p>
+          ) : (
+            names.map((name) => (
+              <label key={name}>
+                <input type="checkbox" checked={chosen.includes(name)} onChange={() => toggle(name)} />
+                {name}
+              </label>
+            ))
+          )}
+          {names.length > 0 && chosen.length === 0 && <p className="muted">With no class ticked, this person sees no students.</p>}
+        </fieldset>
+      )}
+      {error && <p className="state state--error" role="alert">{error}</p>}
+      <div className="form__actions form__actions--flush">
+        <button type="submit" disabled={pending}>{pending ? "Saving…" : "Save access"}</button>
+        <button type="button" className="button--ghost" onClick={onCancel}>Cancel</button>
+      </div>
+    </form>
+  );
+}
+
 function UsersPage() {
   const { user: me } = useAuth();
   const { data, loading, error, refetch } = useFetch("/api/users");
   const [actionError, setActionError] = useState("");
   const [resettingId, setResettingId] = useState(null);
+  const [accessId, setAccessId] = useState(null);
   const users = data ?? [];
 
   async function patch(user, body) {
@@ -107,6 +176,12 @@ function UsersPage() {
     } catch (err) {
       setActionError(err.message);
     }
+  }
+
+  async function saveAccess(user, body) {
+    await request(`/api/users/${user.id}`, { method: "PATCH", body });
+    setAccessId(null);
+    refetch();
   }
 
   async function resetPassword(user, password) {
@@ -138,13 +213,19 @@ function UsersPage() {
         <div className="table-wrap">
           <table>
             <thead>
-              <tr><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th><span className="visually-hidden">Actions</span></th></tr>
+              <tr><th>Username</th><th>Role</th><th>Email</th><th>Access</th><th>Status</th><th>Created</th><th><span className="visually-hidden">Actions</span></th></tr>
             </thead>
             <tbody>
               {users.map((u) =>
-                resettingId === u.id ? (
+                accessId === u.id ? (
                   <tr key={u.id}>
-                    <td colSpan={5}>
+                    <td colSpan={7}>
+                      <AccessForm user={u} onSubmit={(body) => saveAccess(u, body)} onCancel={() => setAccessId(null)} />
+                    </td>
+                  </tr>
+                ) : resettingId === u.id ? (
+                  <tr key={u.id}>
+                    <td colSpan={7}>
                       <ResetPasswordForm
                         username={u.username}
                         onSubmit={(pw) => resetPassword(u, pw)}
@@ -173,11 +254,18 @@ function UsersPage() {
                         </select>
                       )}
                     </td>
+                    <td>{u.email ?? ""}</td>
+                    <td>{accessLabel(u)}</td>
                     <td>{u.active ? "Active" : "Deactivated"}</td>
                     <td>{u.created_at}</td>
                     <td className="row-actions">
                       {u.id !== me.id && (
                         <>
+                          {u.role !== "admin" && (
+                            <button type="button" className="button--ghost button--small" onClick={() => setAccessId(u.id)}>
+                              Edit access<span className="visually-hidden"> for {u.username}</span>
+                            </button>
+                          )}
                           <button type="button" className="button--ghost button--small" onClick={() => setResettingId(u.id)}>
                             Reset password
                           </button>

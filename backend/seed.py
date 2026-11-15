@@ -26,6 +26,12 @@ LAST = ["Okafor", "Adeyemi", "Bello", "Nwosu", "Balogun", "Eze", "Lawal", "Okonk
         "Abubakar", "Afolabi"]
 
 
+def demo_class(number):
+    """Ten students each in JSS 1A, JSS 1B, JSS 2A and JSS 2B."""
+    block = (number - 1) // 10
+    return f"JSS {block // 2 + 1}{'AB'[block % 2]}"
+
+
 def seed(database_path, rng_seed=42):
     rng = random.Random(rng_seed)
     init_db(database_path)
@@ -35,8 +41,8 @@ def seed(database_path, rng_seed=42):
     rng.shuffle(names)
     names = names[:40]
 
-    for name in names:
-        cur = conn.execute("INSERT INTO students (name) VALUES (?)", (name,))
+    for number, name in enumerate(names, start=1):
+        cur = conn.execute("INSERT INTO students (name, student_code, class_name) VALUES (?, ?, ?)", (name, f"ADM-{number:04d}", demo_class(number)))
         student_id = cur.lastrowid
         ability = rng.gauss(79, 9)      # long-run level of this student
         trend = rng.uniform(-1.5, 3)       # per-semester drift
@@ -72,6 +78,9 @@ def seed_interventions(conn, rng):
         (Config.AT_RISK_GPA,),
     ).fetchall()
     now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    owner = Config.ADMIN_USERNAME  # so the demo administrator has reminders to look at
+    # The first few open items are due overdue / today / soon, so a demo always has something to show.
+    forced_offsets = iter([-4, 0, 2, -1])
     for (student_id,) in at_risk:
         if rng.random() < 0.35:
             continue  # nobody following this one up yet
@@ -87,11 +96,14 @@ def seed_interventions(conn, rng):
                     (student_id, kind, note, stamp, done, done),
                 )
             else:  # still open, some already overdue
-                due = (now + datetime.timedelta(days=rng.randint(-10, 20))).strftime("%Y-%m-%d")
+                offset = next(forced_offsets, None)
+                if offset is None:
+                    offset = rng.randint(-10, 20)
+                due = (now + datetime.timedelta(days=offset)).strftime("%Y-%m-%d")
                 conn.execute(
-                    "INSERT INTO interventions (student_id, kind, note, due_date, created_by, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, 'demo.staff', ?, ?)",
-                    (student_id, kind, note, due, stamp, stamp),
+                    "INSERT INTO interventions (student_id, kind, note, due_date, assigned_to, created_by, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?, 'demo.staff', ?, ?)",
+                    (student_id, kind, note, due, owner, stamp, stamp),
                 )
 
 

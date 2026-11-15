@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { request } from "../api/client";
+import EmailSettings from "../components/EmailSettings";
 import { useAuth } from "../auth/useAuth";
 import { roleLabel } from "../utils/roles";
 import { validatePassword } from "../utils/validate";
 
 function AccountPage() {
-  const { user, updateSession } = useAuth();
+  const { user, canRecord, updateSession } = useAuth();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -71,6 +72,8 @@ function AccountPage() {
           </div>
         </form>
       </section>
+
+      {canRecord && <EmailSettings />}
     </div>
   );
 }

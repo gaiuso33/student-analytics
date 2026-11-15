@@ -23,16 +23,16 @@ export async function adminToken(request) {
   return apiToken(request, ADMIN.username, ADMIN.password);
 }
 
-export async function createUser(request, { role = "viewer", prefix = "user" } = {}) {
+export async function createUser(request, { role = "viewer", prefix = "user", scope, classes } = {}) {
   const token = await adminToken(request);
   const username = uid(prefix);
   const password = `${uid("pw")}-long-pass`;
   const res = await request.post(`${API}/api/users`, {
     headers: authHeaders(token),
-    data: { username, password, role },
+    data: { username, password, role, ...(scope ? { scope, classes: classes ?? [] } : {}) },
   });
   expect(res.status(), "create user").toBe(201);
-  return { username, password };
+  return { username, password, id: (await res.json()).id };
 }
 
 /** Load results through the real import endpoint. rows: [[name, course, semester, score], ...] */
@@ -68,4 +68,38 @@ export async function signOut(page) {
 /** Accept the next browser confirm() dialog (delete confirmations). */
 export function acceptDialogs(page) {
   page.on("dialog", (dialog) => dialog.accept());
+}
+
+/** An ISO date (UTC) this many days from today. The server also works in UTC. */
+export function isoDay(offset = 0) {
+  return new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Record a follow-up through the API as the administrator. */
+export async function addFollowUp(request, studentId, data) {
+  const token = await adminToken(request);
+  const res = await request.post(`${API}/api/students/${studentId}/interventions`, {
+    headers: authHeaders(token),
+    data: { kind: "meeting", note: "Set up by a test.", ...data },
+  });
+  expect(res.status(), "create follow-up").toBe(201);
+  return res.json();
+}
+
+/** Load a CSV (as text) through the real import endpoint. */
+export async function importCsv(request, csv) {
+  const token = await adminToken(request);
+  const res = await request.post(`${API}/api/import`, { headers: authHeaders(token), data: { csv } });
+  expect(res.ok(), `import: ${await res.text()}`).toBeTruthy();
+  return res.json();
+}
+
+/** Add one result to a student through the API. */
+export async function addResult(request, studentId, { course = "Math", semester = "2036-1", score = 70 } = {}) {
+  const token = await adminToken(request);
+  const res = await request.post(`${API}/api/students/${studentId}/records`, {
+    headers: authHeaders(token),
+    data: { course, semester, score },
+  });
+  expect(res.status(), "add result").toBe(201);
 }

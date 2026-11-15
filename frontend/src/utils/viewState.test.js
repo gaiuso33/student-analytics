@@ -7,12 +7,13 @@ const canonical = (params) => [...params.entries()].map((e) => e.join("=")).sort
 describe("readView", () => {
   it("has sensible defaults for an empty address", () => {
     expect(readView(q(""))).toEqual({
-      search: "", course: "", semester: "", min: "", max: "", risk: "", sort: "", dir: "asc", page: 1, size: 25,
+      search: "", course: "", semester: "", klass: "", min: "", max: "", risk: "", sort: "", dir: "asc", page: 1, size: 25,
     });
   });
   it("reads every field", () => {
-    const view = readView(q("search=ann&course=Math&semester=2025-1&min=10&max=59&risk=1&sort=score&dir=desc&page=3&size=50"));
+    const view = readView(q("search=ann&course=Math&semester=2025-1&class=7A&min=10&max=59&risk=1&sort=score&dir=desc&page=3&size=50"));
     expect(view.search).toBe("ann");
+    expect(view.klass).toBe("7A");
     expect(view.max).toBe("59");
     expect(view.risk).toBe("1");
     expect(view.sort).toBe("score");
@@ -40,7 +41,7 @@ describe("toQuery", () => {
     expect(canonical(toQuery({ ...readView(q("")), sort: "name", dir: "desc" }))).toBe("dir=desc&sort=name");
   });
   it("round-trips a full address", () => {
-    const text = "course=Math&max=59&min=10&page=2&risk=1&search=ann&semester=2025-1&size=10&sort=score&dir=desc";
+    const text = "class=7A&course=Math&max=59&min=10&page=2&risk=1&search=ann&semester=2025-1&size=10&sort=score&dir=desc";
     expect(canonical(toQuery(readView(q(text))))).toBe(canonical(q(text)));
   });
   it("encodes awkward text safely", () => {

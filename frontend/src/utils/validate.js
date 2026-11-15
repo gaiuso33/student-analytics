@@ -1,6 +1,17 @@
 // Keep these limits in sync with the backend (validation.py / config.py).
 export const MIN_PASSWORD_LENGTH = 10;
 
+/** Optional student ID / admission number. Same rule as the server. */
+export function validateStudentCode(code) {
+  const value = code.trim();
+  if (value === "" || /^[A-Za-z0-9][A-Za-z0-9._/-]{0,29}$/.test(value)) return null;
+  return "Student ID can use letters, numbers, dots, dashes and slashes (up to 30 characters)";
+}
+
+export function validateClassName(name) {
+  return name.trim().length <= 40 ? null : "Class must be at most 40 characters";
+}
+
 export function validateName(name, label = "Name") {
   const value = name.trim();
   if (!value) return `${label} is required`;

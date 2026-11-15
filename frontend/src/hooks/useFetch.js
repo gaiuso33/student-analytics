@@ -7,9 +7,10 @@ import { fetchJson } from "../api/client";
  * - `loading` is derived (no synchronous setState inside the effect).
  * - When refetching the same path, the previous data stays on screen instead of flashing a spinner.
  */
-export function useFetch(path) {
+export function useFetch(path, refreshKey = 0) {
   const [reloadKey, setReloadKey] = useState(0);
-  const requestId = `${path}#${reloadKey}`;
+  // A changed refreshKey fetches again, keeping the old data on screen meanwhile.
+  const requestId = `${path}#${reloadKey}#${refreshKey}`;
   const [result, setResult] = useState({ id: null, path: null, data: null, error: null });
 
   useEffect(() => {

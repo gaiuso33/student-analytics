@@ -9,7 +9,7 @@ class ApiTests(ApiTestCase):
     def test_students_shape(self):
         rows = self.get("/api/students")
         self.assertGreater(len(rows), 0)
-        self.assertEqual(set(rows[0]), {"id", "student_id", "name", "course", "score", "semester", "gpa", "at_risk"})
+        self.assertEqual(set(rows[0]), {"id", "student_id", "name", "student_code", "class_name", "course", "score", "semester", "gpa", "at_risk"})
         self.assertEqual(len({r["id"] for r in rows}), len(rows))  # unique ids
         self.assertTrue(all(0 <= r["score"] <= 100 for r in rows))
         self.assertTrue(all(0 <= r["gpa"] <= 4 for r in rows))

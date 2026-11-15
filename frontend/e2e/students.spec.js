@@ -225,9 +225,9 @@ test.describe("the students list", () => {
     ]);
     expect(download.suggestedFilename()).toMatch(/^student-records-\d{4}-\d{2}-\d{2}\.csv$/);
     const text = fs.readFileSync(await download.path(), "utf8");
-    expect(text).toContain("Student,Course,Semester,Score,Grade,GPA,At risk");
-    expect(text).toMatch(new RegExp(`${good},Math,2033-1,92,A,4,No`));
-    expect(text).toMatch(new RegExp(`${weak},Math,2033-1,20,F,0,Yes`));
+    expect(text).toContain("Student,Student ID,Class,Course,Semester,Score,Grade,GPA,At risk");
+    expect(text).toMatch(new RegExp(`${good},,,Math,2033-1,92,A,4,No`));
+    expect(text).toMatch(new RegExp(`${weak},,,Math,2033-1,20,F,0,Yes`));
   });
 
   test("a student's row links to their page", async ({ page, request }) => {

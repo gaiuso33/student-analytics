@@ -23,6 +23,7 @@ That is why the steps below go API first, then website, then back to the API.
 |--|--|
 | **Sleeping** | Render's free API sleeps after 15 minutes without visitors; the next visit takes up to about a minute to wake it, during which the site shows "Cannot reach the server" or a loading page |
 | **Data resets** | Whenever the API restarts, redeploys or wakes from sleep, it starts with fresh demo data. Anything added or changed during a demo disappears later |
+| **Reminders** | The in-app reminders work on the demo (the demo administrator has overdue and due-soon follow-ups to show). Reminder *emails* don't: they need a mail account and a daily schedule, which the free plan can't keep |
 | **Accounts survive** | The admin and viewer logins come from settings, so they exist after every reset |
 | **Monthly hours** | Render gives 750 free instance hours a month, enough for one service to stay awake all month |
 | **Cost** | Free. Limits and prices change; check render.com/pricing and netlify.com/pricing before relying on them. Render's paid Starter plan (about $7 a month at the time of writing) stops the sleeping |
@@ -61,9 +62,10 @@ If git asks for a password, GitHub needs a **personal access token** rather than
 1. Sign up at render.com with your GitHub account and allow it to see the `student-analytics` repository.
 2. **New +**, then **Blueprint**, select the repository, and continue. Render reads `render.yaml` and shows one service,
    `student-analytics-api`, on the **Free** plan.
-3. It asks for three values:
+3. It asks for these values:
    - `ADMIN_PASSWORD`: your administrator password, **at least 10 characters**. Write it down. (If it is shorter, the API refuses to start.)
    - `DEMO_VIEWER_PASSWORD`: a password for the read-only `viewer` account that you'll share with people you're pitching to (at least 10 characters).
+   - `DEMO_STAFF_PASSWORD`: a password for a `teacher` account that sees only one class (JSS 1A). It is the quickest way to show class-level access (at least 10 characters).
    - `CORS_ORIGINS`: type `http://localhost:5173` for now; you'll replace it in Step 4.
 4. Press **Apply** / **Deploy**. The first build takes a few minutes. Wait until the service shows **Live**.
 5. Copy the service address shown near the top, like `https://student-analytics-api-abcd.onrender.com`.

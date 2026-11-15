@@ -2,12 +2,16 @@ import { Link } from "react-router-dom";
 import Charts from "../components/Charts";
 import StatsCards from "../components/StatsCards";
 import InsightsCard from "../components/InsightsCard";
+import RemindersCard from "../components/RemindersCard";
+import ScopeNotice from "../components/ScopeNotice";
+import { useAuth } from "../auth/useAuth";
 import Leaderboard from "../components/Leaderboard";
 import CourseDifficulty from "../components/CourseDifficulty";
 import AtRiskStudents from "../components/AtRiskStudents";
 import { useFetch } from "../hooks/useFetch";
 
 function OverviewPage() {
+  const { canRecord } = useAuth();
   const students = useFetch("/api/students");
   const analytics = useFetch("/api/analytics");
 
@@ -18,7 +22,11 @@ function OverviewPage() {
         <Link to="/students">View all student records</Link>
       </header>
 
+      <ScopeNotice />
+
       <StatsCards analytics={analytics.data} loading={analytics.loading} error={analytics.error} />
+
+      {canRecord && <RemindersCard />}
 
       <InsightsCard />
 

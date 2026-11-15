@@ -26,6 +26,21 @@ class Config:
     # A student's semester GPA must move by at least this much to be called out as improving/declining.
     INSIGHT_GPA_CHANGE = float(os.environ.get("INSIGHT_GPA_CHANGE", 1.0))
 
+    # ---- reminders ----
+    # Follow-ups due within this many days (and overdue ones) "need attention".
+    REMINDER_DAYS_AHEAD = int(os.environ.get("REMINDER_DAYS_AHEAD", 2))
+    # Email digests (python manage.py send-reminders). Nothing is sent unless SMTP_HOST is set.
+    SMTP_HOST = os.environ.get("SMTP_HOST") or None
+    SMTP_PORT = int(os.environ.get("SMTP_PORT") or 587)
+    SMTP_USER = os.environ.get("SMTP_USER") or None
+    SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD") or None
+    SMTP_SECURITY = (os.environ.get("SMTP_SECURITY") or "starttls").lower()  # starttls | ssl | none
+    MAIL_FROM = os.environ.get("MAIL_FROM") or os.environ.get("SMTP_USER") or "no-reply@localhost"
+    SITE_URL = (os.environ.get("SITE_URL") or "http://localhost:5173").rstrip("/")  # used for the link in emails
+    # Emails say how many follow-ups need attention. Student names are only included when this is on.
+    # Notes are never included.
+    REMINDER_INCLUDE_NAMES = os.environ.get("REMINDER_INCLUDE_NAMES", "0").lower() in ("1", "true", "yes")
+
     # ---- bulk import ----
     MAX_IMPORT_ROWS = int(os.environ.get("MAX_IMPORT_ROWS", 5000))
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # request size cap (bytes)
@@ -41,6 +56,9 @@ class Config:
     # Optional read-only account created on first run (handy for sharing a demo without giving out the admin login).
     DEMO_VIEWER_USERNAME = os.environ.get("DEMO_VIEWER_USERNAME")
     DEMO_VIEWER_PASSWORD = os.environ.get("DEMO_VIEWER_PASSWORD")
+    # Optional teacher account limited to the first class, to show class-level access in a demo.
+    DEMO_STAFF_USERNAME = os.environ.get("DEMO_STAFF_USERNAME")
+    DEMO_STAFF_PASSWORD = os.environ.get("DEMO_STAFF_PASSWORD")
     MIN_PASSWORD_LENGTH = 10
     LOGIN_MAX_FAILS = int(os.environ.get("LOGIN_MAX_FAILS", 5))
     LOGIN_LOCK_SECONDS = int(os.environ.get("LOGIN_LOCK_SECONDS", 60))

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import AsyncCard from "../components/AsyncCard";
+import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
 import { excerpt, formatDate, kindLabel } from "../utils/interventions";
 
@@ -8,9 +9,18 @@ function FollowUpsPage() {
   const followUps = useFetch("/api/interventions?status=open");
   const atRisk = useFetch("/api/at-risk-students");
   const [overdueOnly, setOverdueOnly] = useState(false);
+  const { user } = useAuth();
+  const [params] = useSearchParams();
+  // Links such as /interventions?show=mine open with that view; after that the choice is local to the page.
+  const [show, setShow] = useState(() => (["mine", "attention"].includes(params.get("show")) ? params.get("show") : "all"));
 
   const all = followUps.data ?? [];
-  const shown = overdueOnly ? all.filter((i) => i.overdue) : all;
+  const inView = all.filter((i) =>
+    show === "mine" ? i.assigned_to?.toLowerCase() === user.username.toLowerCase()
+    : show === "attention" ? i.overdue || i.due_soon
+    : true
+  );
+  const shown = overdueOnly ? inView.filter((i) => i.overdue) : inView;
   const overdueCount = all.filter((i) => i.overdue).length;
   const unattended = (atRisk.data ?? []).filter((s) => s.open_interventions === 0);
 
@@ -58,18 +68,28 @@ function FollowUpsPage() {
           <p className="state">Nothing open right now.</p>
         ) : (
           <>
+            <div className="followups-toolbar">
+              <div className="field">
+                <label htmlFor="show-filter">Show</label>
+                <select id="show-filter" value={show} onChange={(e) => setShow(e.target.value)}>
+                  <option value="all">All open follow-ups</option>
+                  <option value="mine">Assigned to me</option>
+                  <option value="attention">Needs attention (overdue or due soon)</option>
+                </select>
+              </div>
             <div className="filters__check">
               <input id="overdue-only" type="checkbox" checked={overdueOnly} onChange={(e) => setOverdueOnly(e.target.checked)} />
               <label htmlFor="overdue-only">Overdue only ({overdueCount})</label>
             </div>
+            </div>
             <div className="table-wrap table-wrap--flat">
               <table>
                 <thead>
-                  <tr><th>Student</th><th>Type</th><th>Note</th><th>Due</th><th>Added by</th></tr>
+                  <tr><th>Student</th><th>Type</th><th>Note</th><th>Due</th><th>Assigned to</th></tr>
                 </thead>
                 <tbody>
                   {shown.length === 0 && (
-                    <tr><td colSpan={5} className="state">No overdue follow-ups.</td></tr>
+                    <tr><td colSpan={5} className="state">Nothing matches this view.</td></tr>
                   )}
                   {shown.map((i) => (
                     <tr key={i.id}>
@@ -79,8 +99,9 @@ function FollowUpsPage() {
                       <td>
                         {i.due_date ? formatDate(i.due_date) : <span className="muted">No date</span>}
                         {i.overdue && <span className="badge badge--alert badge--small">Overdue</span>}
+                        {i.due_soon && <span className="badge badge--warn badge--small">Due soon</span>}
                       </td>
-                      <td>{i.created_by ?? ""}</td>
+                      <td>{i.assigned_to ?? <span className="muted">Nobody</span>}</td>
                     </tr>
                   ))}
                 </tbody>

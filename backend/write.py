@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request
 
 from auth import admin_required, audit
 from db import get_db
-from validation import ValidationError, clean_score, clean_text
+from validation import ValidationError, clean_class_name, clean_score, clean_student_code, clean_text
 
 bp = Blueprint("write", __name__, url_prefix="/api")
 
@@ -28,34 +28,57 @@ def record_dict(row):
     return {k: row[k] for k in ("id", "student_id", "course", "semester", "score")}
 
 
+SAME_NAME = "A student with that name already exists. Give each of them a student ID to tell them apart."
+
+
+def name_clash(db, name, code, exclude_id=-1):
+    """Two students may share a name only if both have (different) student IDs."""
+    return db.execute(
+        "SELECT 1 FROM students WHERE name = ? COLLATE NOCASE AND id <> ? AND (student_code IS NULL OR ? IS NULL) LIMIT 1",
+        (name, exclude_id, code),
+    ).fetchone() is not None
+
+
 @bp.post("/students")
 @admin_required
 def create_student():
-    name = clean_text(json_body().get("name"), "name", 100, "Name")
+    body = json_body()
+    name = clean_text(body.get("name"), "name", 100, "Name")
+    code = clean_student_code(body.get("student_code"))
+    class_name = clean_class_name(body.get("class_name"))
     db = get_db()
+    if name_clash(db, name, code):
+        return conflict(SAME_NAME)
     try:
-        cur = db.execute("INSERT INTO students (name) VALUES (?)", (name,))
+        cur = db.execute("INSERT INTO students (name, student_code, class_name) VALUES (?, ?, ?)", (name, code, class_name))
     except sqlite3.IntegrityError:
-        return conflict("A student with that name already exists")
+        return conflict("That student ID is already in use")
     db.commit()
-    audit("student.create", f"id={cur.lastrowid} name={name}")
-    return jsonify(id=cur.lastrowid, name=name), 201
+    audit("student.create", f"id={cur.lastrowid} name={name} code={code or '-'} class={class_name or '-'}")
+    return jsonify(id=cur.lastrowid, name=name, student_code=code, class_name=class_name), 201
 
 
 @bp.put("/students/<int:student_id>")
 @admin_required
 def rename_student(student_id):
-    name = clean_text(json_body().get("name"), "name", 100, "Name")
+    """Change a student's name, student ID and/or class. Leave a field out to keep it; null or "" removes the ID or class."""
+    body = json_body()
+    name = clean_text(body.get("name"), "name", 100, "Name")
     db = get_db()
-    if db.execute("SELECT 1 FROM students WHERE id = ?", (student_id,)).fetchone() is None:
+    row = db.execute("SELECT student_code, class_name FROM students WHERE id = ?", (student_id,)).fetchone()
+    if row is None:
         return not_found("Student")
+    code = clean_student_code(body["student_code"]) if "student_code" in body else row["student_code"]
+    class_name = clean_class_name(body["class_name"]) if "class_name" in body else row["class_name"]
+    if name_clash(db, name, code, student_id):
+        return conflict(SAME_NAME)
     try:
-        db.execute("UPDATE students SET name = ? WHERE id = ?", (name, student_id))
+        db.execute("UPDATE students SET name = ?, student_code = ?, class_name = ? WHERE id = ?", (name, code, class_name, student_id))
     except sqlite3.IntegrityError:
-        return conflict("A student with that name already exists")
+        return conflict("That student ID is already in use")
     db.commit()
-    audit("student.rename", f"id={student_id} name={name}")
-    return jsonify(id=student_id, name=name)
+    audit("student.rename", f"id={student_id} name={name} code={code or '-'} class={class_name or '-'}")
+    return jsonify(id=student_id, name=name, student_code=code, class_name=class_name)
 
 
 @bp.delete("/students/<int:student_id>")

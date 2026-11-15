@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateName, validateResult, validatePassword, validateUsername } from "./validate";
+import { validateName, validateResult, validatePassword, validateUsername, validateStudentCode, validateClassName } from "./validate";
 
 describe("validateName", () => {
   it("requires a non-blank name of at most 100 characters", () => {
@@ -34,6 +34,18 @@ describe("validatePassword", () => {
   it("enforces the minimum length", () => {
     expect(validatePassword("short")).toBe("Password must be at least 10 characters");
     expect(validatePassword("long-enough-pw")).toBe(null);
+  });
+});
+
+describe("validateStudentCode and validateClassName", () => {
+  it("accepts typical admission numbers and rejects odd characters", () => {
+    ["", "  ", "ADM-0123", "2024/0123", "a.b-c", "x".repeat(30)].forEach((code) => expect(validateStudentCode(code)).toBe(null));
+    ["has space", "bad!", "-start", "x".repeat(31)].forEach((code) => expect(validateStudentCode(code)).not.toBe(null));
+  });
+  it("limits class names to 40 characters", () => {
+    expect(validateClassName("JSS 2A")).toBe(null);
+    expect(validateClassName("")).toBe(null);
+    expect(validateClassName("x".repeat(41))).not.toBe(null);
   });
 });
 

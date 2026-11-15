@@ -19,10 +19,10 @@ LOCAL_ORIGIN = re.compile(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 
 # Cumulative GPA per student (average grade points over all records).
 STUDENT_GPA = """
-    SELECT s.id, s.name, ROUND(AVG(p.points), 2) AS gpa, COUNT(*) AS records,
+    SELECT s.id, s.name, s.student_code, s.class_name, ROUND(AVG(p.points), 2) AS gpa, COUNT(*) AS records,
            SUM(CASE WHEN p.score < :pass_mark THEN 1 ELSE 0 END) AS failing_courses
-    FROM students s
-    JOIN record_points p ON p.student_id = s.id
+    FROM students_v s
+    JOIN record_points_v p ON p.student_id = s.id
     GROUP BY s.id
 """
 
@@ -110,17 +110,17 @@ def create_app(test_config=None):
         sql = f"""
             WITH sg AS ({STUDENT_GPA})
             SELECT * FROM (
-                SELECT p.id, p.student_id, s.name, p.course, p.score, p.semester,
+                SELECT p.id, p.student_id, s.name, s.student_code, s.class_name, p.course, p.score, p.semester,
                        ROUND(AVG(p.points) OVER (PARTITION BY p.student_id, p.semester), 2) AS gpa,
                        (sg.gpa < :threshold) AS at_risk
-                FROM record_points p
-                JOIN students s ON s.id = p.student_id
+                FROM record_points_v p
+                JOIN students_v s ON s.id = p.student_id
                 JOIN sg ON sg.id = p.student_id
             ) WHERE 1=1
         """
         args = {**params(), "threshold": app.config["AT_RISK_GPA"]}
         if search:
-            sql += " AND (LOWER(name) LIKE :q OR LOWER(course) LIKE :q)"
+            sql += " AND (LOWER(name) LIKE :q OR LOWER(course) LIKE :q OR LOWER(COALESCE(student_code, '')) LIKE :q OR LOWER(COALESCE(class_name, '')) LIKE :q)"
             args["q"] = f"%{search}%"
         if course:
             sql += " AND course = :course"
@@ -128,6 +128,9 @@ def create_app(test_config=None):
         if semester:
             sql += " AND semester = :semester"
             args["semester"] = semester
+        if request.args.get("class"):
+            sql += " AND class_name = :class_name COLLATE NOCASE"
+            args["class_name"] = request.args["class"]
         if request.args.get("at_risk", "").lower() in ("1", "true"):
             sql += " AND at_risk = 1"
         sql += " ORDER BY name, semester, course"
@@ -143,7 +146,7 @@ def create_app(test_config=None):
             params(),
         ).fetchone()
         pr = db.execute(
-            "SELECT COUNT(*) AS n, SUM(CASE WHEN score >= :pass_mark THEN 1 ELSE 0 END) AS passed FROM records",
+            "SELECT COUNT(*) AS n, SUM(CASE WHEN score >= :pass_mark THEN 1 ELSE 0 END) AS passed FROM records_v",
             params(),
         ).fetchone()
         n = pr["n"] or 0
@@ -161,7 +164,7 @@ def create_app(test_config=None):
         except ValueError:
             return jsonify(error="bad_request", message="limit must be an integer"), 400
         rows = get_db().execute(
-            f"SELECT id, name, gpa FROM ({STUDENT_GPA}) ORDER BY gpa DESC, name LIMIT :limit",
+            f"SELECT id, name, student_code, class_name, gpa FROM ({STUDENT_GPA}) ORDER BY gpa DESC, name LIMIT :limit",
             {**params(), "limit": limit},
         ).fetchall()
         return jsonify([dict(r) for r in rows])
@@ -173,7 +176,7 @@ def create_app(test_config=None):
             """
             SELECT course, ROUND(AVG(score), 1) AS average_score,
                    COUNT(DISTINCT student_id) AS students
-            FROM records GROUP BY course ORDER BY average_score ASC
+            FROM records_v GROUP BY course ORDER BY average_score ASC
             """
         ).fetchall()
         return jsonify([dict(r) for r in rows])
@@ -184,10 +187,10 @@ def create_app(test_config=None):
         with how many follow-ups are still open for each."""
         rows = get_db().execute(
             f"""
-            SELECT sg.id, sg.name, sg.gpa, sg.failing_courses,
-                   (SELECT COUNT(*) FROM interventions i
+            SELECT sg.id, sg.name, sg.student_code, sg.class_name, sg.gpa, sg.failing_courses,
+                   (SELECT COUNT(*) FROM interventions_v i
                      WHERE i.student_id = sg.id AND i.status = 'open') AS open_interventions,
-                   (SELECT MAX(i.created_at) FROM interventions i
+                   (SELECT MAX(i.created_at) FROM interventions_v i
                      WHERE i.student_id = sg.id) AS last_intervention
             FROM ({STUDENT_GPA}) AS sg
             WHERE sg.gpa < :threshold ORDER BY sg.gpa ASC, sg.name
@@ -199,7 +202,7 @@ def create_app(test_config=None):
     @app.get("/api/students/<int:student_id>")
     def student_detail(student_id):
         db = get_db()
-        student = db.execute("SELECT id, name FROM students WHERE id = ?", (student_id,)).fetchone()
+        student = db.execute("SELECT id, name, student_code, class_name FROM students_v WHERE id = ?", (student_id,)).fetchone()
         if student is None:
             return jsonify(error="not_found", message="Student not found"), 404
         stats = db.execute(
@@ -208,18 +211,20 @@ def create_app(test_config=None):
         ).fetchone()  # None until the student has at least one result
         gpa = stats["gpa"] if stats else None
         records = db.execute(
-            "SELECT id, course, semester, score FROM records "
+            "SELECT id, course, semester, score FROM records_v "
             "WHERE student_id = ? ORDER BY semester, course",
             (student_id,),
         ).fetchall()
         semesters = db.execute(
-            "SELECT semester, ROUND(AVG(points), 2) AS gpa FROM record_points "
+            "SELECT semester, ROUND(AVG(points), 2) AS gpa FROM record_points_v "
             "WHERE student_id = ? GROUP BY semester ORDER BY semester",
             (student_id,),
         ).fetchall()
         return jsonify(
             id=student["id"],
             name=student["name"],
+            student_code=student["student_code"],
+            class_name=student["class_name"],
             gpa=gpa,
             failing_courses=stats["failing_courses"] if stats else 0,
             at_risk=gpa is not None and gpa < app.config["AT_RISK_GPA"],
@@ -236,9 +241,18 @@ def create_app(test_config=None):
                    ROUND(AVG(score), 1) AS average_score,
                    ROUND(100.0 * SUM(CASE WHEN score >= :pass_mark THEN 1 ELSE 0 END) / COUNT(*), 1) AS pass_rate,
                    COUNT(DISTINCT student_id) AS students
-            FROM records GROUP BY course ORDER BY average_score ASC
+            FROM records_v GROUP BY course ORDER BY average_score ASC
             """,
             params(),
+        ).fetchall()
+        return jsonify([dict(r) for r in rows])
+
+    @app.get("/api/classes")
+    def classes():
+        """Classes with students you are allowed to see, and how many students each has."""
+        rows = get_db().execute(
+            "SELECT MIN(class_name) AS name, COUNT(*) AS students FROM students_v "
+            "WHERE class_name IS NOT NULL GROUP BY class_name COLLATE NOCASE ORDER BY class_name COLLATE NOCASE"
         ).fetchall()
         return jsonify([dict(r) for r in rows])
 
@@ -248,7 +262,7 @@ def create_app(test_config=None):
             """
             SELECT semester, ROUND(AVG(gpa), 2) AS average_gpa FROM (
                 SELECT semester, student_id, AVG(points) AS gpa
-                FROM record_points GROUP BY semester, student_id
+                FROM record_points_v GROUP BY semester, student_id
             ) GROUP BY semester ORDER BY semester
             """
         ).fetchall()

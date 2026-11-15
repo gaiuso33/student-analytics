@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import Filters from "../components/Filters";
 import Pagination from "../components/Pagination";
+import ScopeNotice from "../components/ScopeNotice";
 import StudentTable from "../components/StudentTable";
 import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
@@ -38,6 +39,7 @@ function StudentsPage() {
     search: view.search,
     course: view.course,
     semester: view.semester,
+    klass: view.klass,
     min: view.min,
     max: view.max,
     risk: view.risk,
@@ -47,6 +49,7 @@ function StudentsPage() {
 
   const courses = distinctValues(all, "course");
   const semesters = distinctValues(all, "semester");
+  const classes = distinctValues(all, "class_name");
   const filtered = filterStudents(all, filters);
   const sorted = sortStudents(filtered, sortConfig);
   const paged = paginate(sorted, page, size);
@@ -85,6 +88,7 @@ function StudentsPage() {
             onChange={(patch) => change(patch)}
             courses={courses}
             semesters={semesters}
+            classes={classes}
             resultCount={filtered.length}
             totalCount={all.length}
           />

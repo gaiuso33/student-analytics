@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
+import { useFetch } from "../hooks/useFetch";
+import { attentionCount } from "../utils/reminders";
 import { roleLabel } from "../utils/roles";
 import ThemeToggle from "./ThemeToggle";
 
@@ -19,7 +21,11 @@ const ACCOUNT_LINK = { to: "/account", label: "Account" };
 
 function Sidebar() {
   const { pathname } = useLocation();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, canRecord, signOut } = useAuth();
+  // Checked again on every page change so the number stays fresh without a reload.
+  const reminders = useFetch("/api/reminders", pathname);
+  const attention = canRecord ? attentionCount(reminders.data) : 0;
+  const overdue = canRecord && (reminders.data?.mine?.overdue ?? 0) > 0;
   // The menu is "open" only for the page it was opened on, so navigating closes it automatically.
   const [openAt, setOpenAt] = useState(null);
   const open = openAt === pathname;
@@ -58,7 +64,15 @@ function Sidebar() {
           <ul>
             {links.map(({ to, label, end }) => (
               <li key={to}>
-                <NavLink to={to} end={end}>{label}</NavLink>
+                <NavLink to={to} end={end}>
+                  {label}
+                  {to === "/interventions" && attention > 0 && (
+                    <span className={`nav-badge${overdue ? " nav-badge--alert" : ""}`}>
+                      <span aria-hidden="true">{attention}</span>
+                      <span className="visually-hidden"> {attention} need your attention</span>
+                    </span>
+                  )}
+                </NavLink>
               </li>
             ))}
           </ul>

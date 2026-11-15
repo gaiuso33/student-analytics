@@ -44,8 +44,8 @@ function StudentDetailPage() {
     refetch();
   }
 
-  async function rename(name) {
-    await request(`/api/students/${student.id}`, { method: "PUT", body: { name } });
+  async function rename(name, details) {
+    await request(`/api/students/${student.id}`, { method: "PUT", body: { name, ...details } });
     setRenaming(false);
     refetch();
   }
@@ -104,9 +104,15 @@ function StudentDetailPage() {
 
           {renaming && (
             <section className="card form-card">
-              <NameForm initial={student.name} submitLabel="Save name" onSubmit={rename} onCancel={() => setRenaming(false)} />
+              <NameForm initial={student.name} initialCode={student.student_code ?? ""} initialClass={student.class_name ?? ""} submitLabel="Save name" onSubmit={rename} onCancel={() => setRenaming(false)} />
             </section>
           )}
+
+          <p className="muted student-meta">
+            {student.student_code ? `Student ID ${student.student_code}` : "No student ID"}
+            {" · "}
+            {student.class_name ? `Class ${student.class_name}` : "No class"}
+          </p>
 
           <div className="stats-grid">
             <div className="card card--stat"><h3>Cumulative GPA</h3><p>{formatNumber(student.gpa)}</p></div>

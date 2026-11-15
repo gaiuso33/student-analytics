@@ -41,6 +41,9 @@ function AuthProvider({ children }) {
     setState({ user, status: "authed" });
   }, []);
 
+  /** Replace the signed-in user's details after they change them (for example their email address). */
+  const refreshUser = useCallback((user) => setState((current) => ({ ...current, user })), []);
+
   const value = useMemo(
     () => ({
       ...state,
@@ -49,8 +52,9 @@ function AuthProvider({ children }) {
       signIn,
       signOut,
       updateSession,
+      refreshUser,
     }),
-    [state, signIn, signOut, updateSession]
+    [state, signIn, signOut, updateSession, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -8,8 +8,9 @@ from flask import Blueprint, current_app, g, jsonify, request
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
+import scope
 from db import get_db
-from validation import ValidationError, clean_username, password_problem
+from validation import ValidationError, clean_email, clean_username, password_problem
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -23,7 +24,10 @@ def error(status, code, message, **extra):
 
 
 def public_user(row):
-    return {"id": row["id"], "username": row["username"], "role": row["role"]}
+    classes = [r[0] for r in get_db().execute(
+        "SELECT class_name FROM user_classes WHERE user_id = ? ORDER BY class_name COLLATE NOCASE", (row["id"],))]
+    return {"id": row["id"], "username": row["username"], "role": row["role"], "email": row["email"],
+            "scope": row["scope"] if row["role"] != "admin" else "all", "classes": classes}
 
 
 # ---------- tokens ----------
@@ -56,6 +60,7 @@ def authenticate():
     if user is None:
         return error(401, "unauthorized", "Please sign in.")
     g.user = user
+    scope.install(get_db(), user)
     return None
 
 
@@ -161,6 +166,21 @@ def me():
     return jsonify(user=public_user(g.user))
 
 
+@bp.patch("/me")
+def update_me():
+    """Set or clear your own reminder email address."""
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or "email" not in body:
+        raise ValidationError("Expected a JSON object with an email field")
+    email = clean_email(body["email"])
+    db = get_db()
+    db.execute("UPDATE users SET email = ? WHERE id = ?", (email, g.user["id"]))
+    db.commit()
+    audit("profile.update", "changed=email")
+    row = db.execute("SELECT * FROM users WHERE id = ?", (g.user["id"],)).fetchone()
+    return jsonify(user=public_user(row))
+
+
 @bp.post("/change-password")
 def change_password():
     body = request.get_json(silent=True)
@@ -185,6 +205,29 @@ def change_password():
 
 
 # ---------- first-run admin ----------
+def _maybe_create_demo_staff(app, conn, taken):
+    """Optional staff account limited to the first class, so a demo can show what a teacher sees."""
+    name, password = app.config.get("DEMO_STAFF_USERNAME"), app.config.get("DEMO_STAFF_PASSWORD")
+    if not name or not password:
+        return
+    try:
+        name = clean_username(name)
+    except ValidationError as exc:
+        print(f"WARNING: demo teacher not created: {exc.message}")
+        return
+    problem = password_problem(password, app.config["MIN_PASSWORD_LENGTH"])
+    if problem or name.lower() in {t.lower() for t in taken if t}:
+        print(f"WARNING: demo teacher not created: {problem or 'the username is already used by another demo account'}")
+        return
+    first_class = conn.execute("SELECT MIN(class_name) FROM students WHERE class_name IS NOT NULL").fetchone()[0]
+    cur = conn.execute(
+        "INSERT INTO users (username, password_hash, role, scope) VALUES (?, ?, 'staff', ?)",
+        (name, generate_password_hash(password), "classes" if first_class else "all"),
+    )
+    if first_class:
+        conn.execute("INSERT INTO user_classes (user_id, class_name) VALUES (?, ?)", (cur.lastrowid, first_class))
+
+
 def _maybe_create_demo_viewer(app, conn, admin_username):
     name = app.config.get("DEMO_VIEWER_USERNAME")
     password = app.config.get("DEMO_VIEWER_PASSWORD")
@@ -228,6 +271,7 @@ def ensure_first_admin(app):
             (username, generate_password_hash(password)),
         )
         _maybe_create_demo_viewer(app, conn, admin_username=username)
+        _maybe_create_demo_staff(app, conn, taken=(username, app.config.get('DEMO_VIEWER_USERNAME')))
         conn.commit()
     finally:
         conn.close()

@@ -1,6 +1,6 @@
-const FIELDS = ["search", "course", "semester", "min", "max", "risk"];
+const FIELDS = ["search", "course", "semester", "klass", "min", "max", "risk"];
 
-function Filters({ filters, onChange, courses, semesters, resultCount, totalCount }) {
+function Filters({ filters, onChange, courses, semesters, classes = [], resultCount, totalCount }) {
   const active = FIELDS.some((f) => filters[f] !== "");
 
   return (
@@ -10,7 +10,7 @@ function Filters({ filters, onChange, courses, semesters, resultCount, totalCoun
         <input
           id="f-search"
           type="search"
-          placeholder="Name or course"
+          placeholder="Name, ID, class or course"
           value={filters.search}
           onChange={(e) => onChange({ search: e.target.value })}
         />
@@ -31,6 +31,16 @@ function Filters({ filters, onChange, courses, semesters, resultCount, totalCoun
           {semesters.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
+
+      {classes.length > 0 && (
+        <div className="filters__field">
+          <label htmlFor="f-class">Class</label>
+          <select id="f-class" value={filters.klass} onChange={(e) => onChange({ klass: e.target.value })}>
+            <option value="">All classes</option>
+            {classes.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      )}
 
       <div className="filters__field filters__field--narrow">
         <label htmlFor="f-min">Min score</label>

@@ -4,8 +4,8 @@ import {
 } from "./students";
 
 const rows = [
-  { id: 1, name: "Ada Eze", course: "Math", semester: "2024-1", score: 55, gpa: 0, at_risk: true },
-  { id: 2, name: "bola Lawal", course: "Physics", semester: "2024-2", score: 91, gpa: 4, at_risk: false },
+  { id: 1, name: "Ada Eze", student_code: "ADM-1", class_name: "7A", course: "Math", semester: "2024-1", score: 55, gpa: 0, at_risk: true },
+  { id: 2, name: "bola Lawal", student_code: null, class_name: "7B", course: "Physics", semester: "2024-2", score: 91, gpa: 4, at_risk: false },
   { id: 3, name: "Chi Okafor", course: "Math", semester: "2024-2", score: null, gpa: 2, at_risk: false },
 ];
 
@@ -16,6 +16,12 @@ describe("filterStudents", () => {
   it("searches name and course case-insensitively", () => {
     expect(filterStudents(rows, { search: "ADA" })).toHaveLength(1);
     expect(filterStudents(rows, { search: "phys" })).toHaveLength(1);
+  });
+  it("finds students by ID or class, and filters by class ignoring case", () => {
+    expect(filterStudents(rows, { search: "adm-1" }).map((r) => r.id)).toEqual([1]);
+    expect(filterStudents(rows, { search: "7b" }).map((r) => r.id)).toEqual([2]);
+    expect(filterStudents(rows, { klass: "7a" }).map((r) => r.id)).toEqual([1]);
+    expect(filterStudents(rows, { klass: "9Z" })).toHaveLength(0);
   });
   it("filters by course and semester", () => {
     expect(filterStudents(rows, { course: "Math" })).toHaveLength(2);

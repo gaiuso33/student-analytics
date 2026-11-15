@@ -1,4 +1,6 @@
 import { useId, useState } from "react";
+import { useAuth } from "../auth/useAuth";
+import { useFetch } from "../hooks/useFetch";
 import { KINDS, NOTE_MAX } from "../utils/interventions";
 import { validateIntervention } from "../utils/validate";
 
@@ -7,10 +9,17 @@ function InterventionForm({ initial, submitLabel, onSubmit, onCancel }) {
   const [kind, setKind] = useState(initial?.kind ?? "meeting");
   const [note, setNote] = useState(initial?.note ?? "");
   const [due, setDue] = useState(initial?.due_date ?? "");
+  const { user } = useAuth();
+  // New follow-ups start assigned to whoever is recording them; editing keeps the current owner.
+  const [assignee, setAssignee] = useState(initial ? (initial.assigned_to ?? "") : user.username);
+  const { data: people } = useFetch("/api/assignees");
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [pending, setPending] = useState(false);
   const uid = useId();
+
+  // The current owner is always listed, even if they are no longer active or the list hasn't loaded yet.
+  const assigneeNames = [...new Set([...(people ?? []).map((p) => p.username), ...(assignee ? [assignee] : [])])];
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -20,7 +29,7 @@ function InterventionForm({ initial, submitLabel, onSubmit, onCancel }) {
     setServerError("");
     setPending(true);
     try {
-      await onSubmit({ kind, note: note.trim(), due_date: due || null });
+      await onSubmit({ kind, note: note.trim(), due_date: due || null, assigned_to: assignee || null });
     } catch (err) {
       setServerError(err.message);
       setPending(false);
@@ -47,6 +56,16 @@ function InterventionForm({ initial, submitLabel, onSubmit, onCancel }) {
           />
           {errors.due && <p className="field__error" role="alert">{errors.due}</p>}
         </div>
+      </div>
+
+      <div className="field">
+        <label htmlFor={`${uid}-assignee`}>Assigned to</label>
+        <select id={`${uid}-assignee`} value={assignee} onChange={(e) => setAssignee(e.target.value)}>
+          <option value="">Nobody (anyone can pick it up)</option>
+          {assigneeNames.map((name) => (
+            <option key={name} value={name}>{name === user.username ? `${name} (you)` : name}</option>
+          ))}
+        </select>
       </div>
 
       <div className="field">

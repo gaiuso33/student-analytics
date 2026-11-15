@@ -18,6 +18,8 @@ export function toCsv(rows, columns) {
 
 const STUDENT_COLUMNS = [
   { header: "Student", value: (r) => r.name },
+  { header: "Student ID", value: (r) => r.student_code },
+  { header: "Class", value: (r) => r.class_name },
   { header: "Course", value: (r) => r.course },
   { header: "Semester", value: (r) => r.semester },
   { header: "Score", value: (r) => r.score },

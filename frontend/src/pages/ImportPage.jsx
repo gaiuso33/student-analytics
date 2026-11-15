@@ -4,7 +4,8 @@ import { request } from "../api/client";
 import { downloadCsv } from "../utils/csv";
 
 const MAX_BYTES = 2 * 1024 * 1024;
-const TEMPLATE = "Student,Course,Semester,Score\r\nAda Eze,Mathematics,2025-1,78\r\nAda Eze,English,2025-1,85\r\n";
+const TEMPLATE =
+  "Student ID,Student,Class,Course,Semester,Score\r\nADM-0001,Ada Eze,JSS 2A,Mathematics,2025-1,78\r\nADM-0001,Ada Eze,JSS 2A,English,2025-1,85\r\n";
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -89,8 +90,9 @@ function ImportPage() {
 
       <section className="card form-card">
         <p>
-          Upload a CSV with the columns <strong>Student, Course, Semester, Score</strong>. Existing students are matched
-          by name (ignoring capital letters) and new ones are created. Nothing is saved until you confirm, and if any
+          Upload a CSV with the columns <strong>Student, Course, Semester, Score</strong>, and optionally <strong>Student ID</strong> and <strong>Class</strong>. Students are matched by
+          Student ID when the file has one, otherwise by name (ignoring capital letters), and new ones are created. If several students share a
+          name, the import asks for IDs instead of guessing. Nothing is saved until you confirm, and if any
           row has a problem, nothing is imported at all.
         </p>
         <p>
@@ -126,7 +128,9 @@ function ImportPage() {
       {done && (
         <p className="notice" role="status">
           Import complete: {plural(done.students_created, "new student")}, {plural(done.records_created, "result")} added,{" "}
-          {done.records_updated} updated, {done.records_skipped} skipped.{" "}
+          {done.records_updated} updated, {done.records_skipped} skipped.
+          {done.student_ids_added > 0 && ` ${plural(done.student_ids_added, "student ID")} added.`}
+          {done.classes_set > 0 && ` ${plural(done.classes_set, "class change")} made.`}{" "}
           <Link to="/students">View students</Link>
         </p>
       )}
@@ -137,6 +141,8 @@ function ImportPage() {
           <ul className="summary-list">
             <li>{plural(preview.total_rows, "row")} read</li>
             <li>{plural(preview.students_created, "new student")} to create</li>
+            {preview.student_ids_added > 0 && <li>{plural(preview.student_ids_added, "student ID")} to add to existing students</li>}
+            {preview.classes_set > 0 && <li>{plural(preview.classes_set, "student")} moved to a different class</li>}
             <li>{plural(preview.records_created, "result")} to add</li>
             <li>{preview.records_updated} to update, {preview.records_skipped} already there and skipped</li>
           </ul>
@@ -162,10 +168,10 @@ function ImportPage() {
             </>
           ) : (
             <div className="form__actions form__actions--flush">
-              <button type="button" onClick={handleImport} disabled={!canImport || changes + preview.students_created === 0}>
+              <button type="button" onClick={handleImport} disabled={!canImport || changes + preview.students_created + preview.student_ids_added + preview.classes_set === 0}>
                 {pending ? "Importing…" : `Import ${plural(changes, "result")}`}
               </button>
-              {changes + preview.students_created === 0 && (
+              {changes + preview.students_created + preview.student_ids_added + preview.classes_set === 0 && (
                 <span className="muted">Nothing new to import.</span>
               )}
             </div>

@@ -3,9 +3,12 @@ import sqlite3
 from flask import current_app, g
 
 SCHEMA = """
+-- Names are not unique: two students can share a name if their student IDs differ.
 CREATE TABLE IF NOT EXISTS students (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         TEXT NOT NULL,
+    student_code TEXT,
+    class_name   TEXT
 );
 
 CREATE TABLE IF NOT EXISTS records (
@@ -29,7 +32,16 @@ CREATE TABLE IF NOT EXISTS users (
     active        INTEGER NOT NULL DEFAULT 1,
     -- bumped on password/role/status changes so old login tokens stop working
     token_version INTEGER NOT NULL DEFAULT 0,
+    email         TEXT,
+    -- 'all' = sees every student; 'classes' = only students in the classes listed in user_classes (never applies to admins)
+    scope         TEXT NOT NULL DEFAULT 'all',
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS user_classes (
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    class_name TEXT NOT NULL COLLATE NOCASE,
+    PRIMARY KEY (user_id, class_name)
 );
 
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -50,6 +62,7 @@ CREATE TABLE IF NOT EXISTS interventions (
     note         TEXT NOT NULL,
     status       TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'done')),
     due_date     TEXT,
+    assigned_to  TEXT,
     created_by   TEXT,
     created_at   TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at   TEXT NOT NULL DEFAULT (datetime('now')),
@@ -88,6 +101,34 @@ def close_db(_exc=None):
         db.close()
 
 
+def _migrate_students(conn):
+    """Older databases have `name TEXT NOT NULL UNIQUE` and no student_code. SQLite can't drop a constraint, so
+    rebuild the table, keeping every row and id. (Foreign keys are off on this connection, so nothing cascades.)"""
+    row = conn.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'students'").fetchone()
+    if row is None or "student_code" in row[0]:
+        return
+    conn.executescript("""
+        BEGIN;
+        CREATE TABLE students_new (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT NOT NULL,
+            student_code TEXT
+        );
+        INSERT INTO students_new (id, name) SELECT id, name FROM students;
+        DROP TABLE students;
+        ALTER TABLE students_new RENAME TO students;
+        COMMIT;
+    """)
+
+
+def _ensure_column(conn, table, column, ddl):
+    """Add a column to an existing table if it is missing. Returns True when it was just added."""
+    if column in [row[1] for row in conn.execute(f"PRAGMA table_info({table})")]:
+        return False
+    conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
+    return True
+
+
 def _migrate_user_roles(conn):
     """Databases created before the 'staff' role existed have a CHECK constraint that rejects it.
     SQLite can't alter a constraint, so rebuild the table (keeping every row, id and password)."""
@@ -117,6 +158,18 @@ def init_db(database_path):
     conn = sqlite3.connect(database_path)
     conn.execute("PRAGMA journal_mode=WAL")  # readers don't block the writer
     conn.executescript(SCHEMA)
+    _migrate_students(conn)
     _migrate_user_roles(conn)
+    _ensure_column(conn, "users", "email", "TEXT")
+    _ensure_column(conn, "users", "scope", "TEXT NOT NULL DEFAULT 'all'")
+    _ensure_column(conn, "students", "class_name", "TEXT")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_name COLLATE NOCASE)")
+    if _ensure_column(conn, "interventions", "assigned_to", "TEXT"):
+        # Existing follow-ups belong to whoever recorded them. New ones may be left unassigned on purpose.
+        conn.execute("UPDATE interventions SET assigned_to = created_by WHERE assigned_to IS NULL")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_interventions_assignee ON interventions(assigned_to, status)")
+    # Student IDs (admission numbers) are unique ignoring letter case; students without one are simply not covered.
+    conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_code ON students(student_code COLLATE NOCASE) "
+                 "WHERE student_code IS NOT NULL")
     conn.commit()
     conn.close()

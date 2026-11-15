@@ -22,6 +22,10 @@ services:
         value: viewer
       - key: DEMO_VIEWER_PASSWORD  # read-only login you can hand to people you're pitching to
         sync: false
+      - key: DEMO_STAFF_USERNAME
+        value: teacher
+      - key: DEMO_STAFF_PASSWORD   # a teacher limited to one class, to show class-level access
+        sync: false
       - key: SEED_DEMO_DATA
         value: "1"
       - key: CORS_ORIGINS        # your Netlify address, e.g. https://student-analytics.netlify.app (no trailing slash)

@@ -1,6 +1,6 @@
 # Student Analytics Dashboard
 
-**Version 1.1.0 (in development on the `dev` branch)** · last release: 1.0.0, 2026-10-08
+**Version 1.3.0 (in development on the `dev` branch)** · previous version: 1.2.0
 
 A web dashboard for schools and departments to track student performance: grades, GPA trends, course
 difficulty and students at risk. Staff sign in with their own accounts; administrators can enter, import and
@@ -44,7 +44,18 @@ edit data, while viewers get read-only access.
 - **Follow-ups** screen: every open follow-up across all students (soonest due first, overdue ones flagged), plus the list of
   **at-risk students who have no open follow-up yet**, which is the to-do list for staff.
 - The Overview's at-risk list marks students with no follow-up, and an insight reports how many are unattended.
+- **Owners and reminders:** every follow-up can be assigned to a staff member or administrator (it starts with whoever records it).
+  Staff see a **"Your follow-ups"** card on the Overview, a count badge on the Follow-ups menu item, and an *Assigned to me* /
+  *Needs attention* filter. Items are flagged **Overdue** or **Due soon** (within 2 days by default).
+- **Optional email digests:** people who add an email address on their Account page get one short email a day listing how many of their
+  follow-ups are overdue or due soon, with a link to the dashboard. Emails never contain notes and, by default, no student names.
 - Staff and administrators can record; everyone signed in can read. Notes are never copied into the audit log.
+
+**Student IDs and class-level access**
+- Students can have an optional **student ID** (admission number), unique across the school. Two students may share a name when their IDs
+  differ. The CSV import matches by ID first, and refuses to guess when a name could mean more than one student.
+- Students can belong to a **class** (for example "JSS 2A"). Staff and viewers can be **limited to certain classes**: they then see only
+  those students everywhere (lists, statistics, insights, follow-ups, reminders and emails). Administrators always see everyone.
 
 **Data entry (administrators)**
 - Add, rename and delete students; add, edit and delete individual results (with confirmation on deletes).
@@ -89,7 +100,7 @@ student-analytics/
 │   ├── workflows/  # CI pipeline  [ci.yml]
 │   └── dependabot.yml
 ├── backend/  # Flask + SQLite API
-│   ├── tests/  # automated API tests  [base.py, test_api.py, test_auth.py, test_demo_accounts.py, test_import.py, test_insights.py, test_interventions.py, test_write.py]
+│   ├── tests/  # automated API tests  [base.py, test_api.py, test_auth.py, test_backup_restore.py, test_class_access.py, test_demo_accounts.py, test_import.py, test_insights.py, test_interventions.py, test_reminders.py, test_student_ids.py, test_write.py]
 │   ├── .dockerignore
 │   ├── .env.example
 │   ├── .gitignore
@@ -100,19 +111,22 @@ student-analytics/
 │   ├── Dockerfile
 │   ├── importer.py  # bulk CSV import
 │   ├── insights.py  # plain-language findings for the Overview page
-│   ├── interventions.py  # follow-up tracking for students
-│   ├── manage.py  # command-line account management
+│   ├── interventions.py  # follow-up tracking, owners and reminders
+│   ├── manage.py  # command-line account management and send-reminders
 │   ├── README.md
+│   ├── reminder_emails.py  # email digests of due follow-ups
 │   ├── requirements.txt
+│   ├── scope.py  # who may see which students (class-level access)
 │   ├── seed.py  # demo data
-│   ├── users.py  # user management and audit log endpoints
+│   ├── users.py  # user management, class access and audit log endpoints
 │   ├── validation.py  # input validation rules
+│   ├── verify_backup.py  # checks a backup is valid before restoring it
 │   ├── write.py  # add/edit/delete students and results
 │   └── wsgi.py  # production entry point (gunicorn)
 ├── docs/  # extra guides
 │   └── deploy-demo.md  # free demo hosting walkthrough (Render + Netlify)
 ├── frontend/  # React + Vite app
-│   ├── e2e/  # browser tests (Playwright)  [account.spec.js, auth.spec.js, constants.js, followups.spec.js, helpers.js, import.spec.js, layout.spec.js, smoke.spec.js, students.spec.js, users.spec.js]
+│   ├── e2e/  # browser tests (Playwright)  [account.spec.js, auth.spec.js, constants.js, failure-reporter.js, followups.spec.js, helpers.js, ids-and-classes.spec.js, import.spec.js, layout.spec.js, reminders.spec.js, smoke.spec.js, students.spec.js, users.spec.js]
 │   ├── public/  # static files (theme-init.js, SPA redirects)  [_redirects, theme-init.js]
 │   ├── src/
 │   │   ├── api/  # API client (adds the login token)  [client.js]
@@ -123,6 +137,7 @@ student-analytics/
 │   │   │   ├── ChartCard.jsx
 │   │   │   ├── Charts.jsx
 │   │   │   ├── CourseDifficulty.jsx
+│   │   │   ├── EmailSettings.jsx
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── Filters.jsx
 │   │   │   ├── InsightsCard.jsx
@@ -131,7 +146,9 @@ student-analytics/
 │   │   │   ├── Leaderboard.jsx
 │   │   │   ├── NameForm.jsx
 │   │   │   ├── Pagination.jsx
+│   │   │   ├── RemindersCard.jsx
 │   │   │   ├── ResultForm.jsx
+│   │   │   ├── ScopeNotice.jsx
 │   │   │   ├── Sidebar.jsx
 │   │   │   ├── StatsCards.jsx
 │   │   │   ├── StudentTable.jsx
@@ -151,7 +168,7 @@ student-analytics/
 │   │   │   ├── StudentsPage.jsx
 │   │   │   └── UsersPage.jsx
 │   │   ├── styles/  # all CSS, light and dark themes  [dashboard.css]
-│   │   ├── utils/  # filtering, sorting, grades, CSV, validation (+ unit tests)  [csv.js, csv.test.js, grades.js, grades.test.js, interventions.js, interventions.test.js, roles.js, students.js, students.test.js, validate.js, validate.test.js, viewState.js, viewState.test.js]
+│   │   ├── utils/  # filtering, sorting, grades, CSV, validation (+ unit tests)  [csv.js, csv.test.js, grades.js, grades.test.js, interventions.js, interventions.test.js, reminders.js, reminders.test.js, roles.js, students.js, students.test.js, validate.js, validate.test.js, viewState.js, viewState.test.js]
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .dockerignore
@@ -170,7 +187,8 @@ student-analytics/
 ├── docker-compose.yml  # production stack: web + backend + volumes
 ├── netlify.toml  # website build settings for Netlify (demo hosting)
 ├── README.md
-└── render.yaml  # API settings for Render (demo hosting)
+├── render.yaml  # API settings for Render (demo hosting)
+└── restore.sh  # restores a backup (checks it first, saves current data)
 ```
 
 Your frontend folder also keeps its own `package.json`, `package-lock.json`, `vite.config.js` and `eslint.config.js`.
@@ -223,6 +241,7 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | `ADMIN_USERNAME` | `admin` | First-run administrator (only used while there are no users) |
 | `ADMIN_PASSWORD` | *(random, printed once)* | First-run administrator password, minimum 10 characters |
 | `DEMO_VIEWER_USERNAME` / `DEMO_VIEWER_PASSWORD` | *(none)* | Optional read-only account created on first run, for sharing a demo without the admin login |
+| `DEMO_STAFF_USERNAME` / `DEMO_STAFF_PASSWORD` | *(none)* | Optional teacher account limited to the first class, to show class-level access in a demo |
 | `PORT` | `8000` in Docker, `5000` for `python app.py` | Port to listen on; hosting platforms such as Render set it themselves |
 | `FLASK_DEBUG` | `1` | `python app.py` only: set `0` to turn off debug mode and auto-reload (the browser tests do) |
 | `SEED_DEMO_DATA` | `1` locally, `0` in Docker | Fill an empty database with fake students |
@@ -231,6 +250,10 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | `AT_RISK_GPA` | `2.0` | At-risk threshold |
 | `TOKEN_MAX_AGE` | `28800` | Sign-in lifetime in seconds (8 hours) |
 | `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Allowed browser origins (only needed when the site and API are on different addresses). `python app.py` also allows any localhost port automatically |
+| `REMINDER_DAYS_AHEAD` | `2` | Follow-ups due within this many days (and overdue ones) count as needing attention |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURITY` | *(email off)* | Your mail provider's SMTP settings for reminder emails (`SMTP_SECURITY`: `starttls`, `ssl` or `none`). Nothing is sent unless `SMTP_HOST` is set |
+| `MAIL_FROM`, `SITE_URL` | `SMTP_USER`, `http://localhost:5173` | Sender shown on emails, and the site address used in their link |
+| `REMINDER_INCLUDE_NAMES` | `0` | `1` also lists student names in the emails (notes are never included) |
 | `INSIGHT_GPA_CHANGE` | `1.0` | How far a student's semester GPA must move to be listed as improving or declining |
 | `LOGIN_MAX_FAILS` / `LOGIN_LOCK_SECONDS` | `5` / `60` | Failed-sign-in lockout |
 | `MAX_IMPORT_ROWS` | `5000` | Rows per CSV import (file size limit is 2 MB) |
@@ -249,7 +272,8 @@ Exported in the terminal (or set in `.env` for Docker). The backend does **not**
 | **Staff** | Everything a viewer can, plus record, edit and complete follow-ups |
 | **Administrator** | Everything staff can, plus delete follow-ups, add/edit/delete students and results, import CSV, manage users, read the audit log |
 
-- Permissions are enforced **on the server**, not just hidden in the interface.
+- Permissions are enforced **on the server**, not just hidden in the interface. Class-level access is applied in one place for every
+  request, so no screen or endpoint can forget it; asking for a student from another class gets the same "not found" as for one that doesn't exist.
 - Passwords: minimum 10 characters, hashed (scrypt). Changing a password, role or status signs that user out everywhere.
 - Five wrong passwords for a username locks it for a minute. Messages never reveal whether a username exists.
 - Administrators can't change their own role or status, so at least one administrator always remains.
@@ -271,9 +295,9 @@ The full reference, with request and response shapes, is in [`backend/README.md`
 
 | Area | Endpoints |
 |------|-----------|
-| Sign-in | `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/change-password` |
-| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend`, `/api/insights`, `/api/interventions`, `/api/students/<id>/interventions` |
-| Write (staff or admin) | `POST /api/students/<id>/interventions`, `PATCH /api/interventions/<id>` |
+| Sign-in and account | `POST /api/auth/login`, `GET` / `PATCH /api/auth/me` (your email address), `POST /api/auth/change-password` |
+| Read (anyone signed in) | `GET /api/students`, `/api/students/<id>`, `/api/courses`, `/api/analytics`, `/api/top-students`, `/api/course-difficulty`, `/api/at-risk-students`, `/api/gpa-trend`, `/api/insights`, `/api/interventions`, `/api/students/<id>/interventions`, `/api/reminders` |
+| Write (staff or admin) | `POST /api/students/<id>/interventions`, `PATCH /api/interventions/<id>`, `GET /api/assignees` |
 | Write (admin) | `POST/PUT/DELETE /api/students…`, `POST /api/students/<id>/records`, `PUT/DELETE /api/records/<id>`, `DELETE /api/interventions/<id>`, `POST /api/import` |
 | Admin | `GET/POST /api/users`, `PATCH /api/users/<id>`, `GET /api/audit` |
 
@@ -288,7 +312,7 @@ In the app: **Import data** in the sidebar, which also offers a template downloa
 ## Testing
 
 ```bash
-# Backend: 81 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS, demo accounts, follow-ups, database migration)
+# Backend: 162 tests (API, sign-in and roles, writes, user admin, CSV import, insights, CORS, demo accounts, follow-ups, reminders and email digests, database migrations, student IDs, class access, backup and restore)
 cd backend && python3 -m unittest discover -s tests -v
 
 # Frontend: unit tests for filtering, sorting, paging, grades, CSV and form validation
@@ -308,8 +332,8 @@ These are the `src/**/*.test.js` files (filtering, sorting, paging, grades, CSV,
 
 ### Browser tests (Playwright)
 
-37 tests drive a real Chromium browser through the actual screens: sign-in and permissions (viewer, staff, administrator),
-adding, editing and deleting students and results, filters, sorting, paging and CSV export, CSV import, follow-ups, user
+55 tests drive a real Chromium browser through the actual screens: sign-in and permissions (viewer, staff, administrator),
+adding, editing and deleting students and results, filters, sorting, paging and CSV export, CSV import, student IDs, classes and limited access, follow-ups, reminders and owners, user
 management, changing your password, dark mode, the phone menu, and a smoke test that opens every page and fails on any
 JavaScript error.
 
@@ -434,7 +458,7 @@ the self-signed certificate). `SITE_ADDRESS=:80` serves plain HTTP: fine for a q
 | View logs | `docker compose logs -f backend` or `... web` |
 | Update to a new version | `git pull && docker compose up -d --build` (the data volume is kept) |
 | Back up the database | `./backup.sh`, which writes `backups/students-<date>.db`. Run it from cron and copy the files off the server |
-| Restore a backup | `docker compose stop backend`, then `docker compose cp backups/students-X.db backend:/data/students.db`, then `docker compose start backend` |
+| Restore a backup | `./restore.sh backups/students-X.db`. It checks the backup first, saves your current data, swaps the file in and restarts the app |
 | Reset an admin password | `docker compose exec backend python manage.py set-password admin` |
 | Add an account | `docker compose exec backend python manage.py create-user alice --role admin` |
 | Stop everything | `docker compose down` (add `-v` **only** if you want to delete the database) |
@@ -444,6 +468,27 @@ Example nightly backup (edit with `crontab -e`):
 
 > **Keep your `.env` file and backups private.** The `.env` file holds the secret that signs logins; if it is
 > ever exposed, set a new `SECRET_KEY` (everyone is signed out) and restart.
+
+### Reminder emails (optional)
+
+The in-app reminders (the Overview card, the menu badge, the filters) work out of the box. **Emails** need two things from you:
+a mail account to send from, and a daily schedule.
+
+1. **Choose a sender.** Any provider that offers SMTP works (your school's mail system, or a transactional email service). Put its
+   details in `.env`: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_SECURITY` and `MAIL_FROM`, plus `SITE_URL`
+   (your site's public address, used for the link). Then `docker compose up -d` to apply them.
+2. **Tell people to add their address** on the Account page. Blank means no emails. Only active staff and administrators are emailed.
+3. **Try it without sending anything:**
+   ```bash
+   docker compose exec backend python manage.py send-reminders --dry-run
+   ```
+   This prints exactly the emails that would go out. Then send for real by leaving off `--dry-run`.
+4. **Schedule it** once a day on the server (`crontab -e`), for example weekdays at 07:00 (the server's clock is UTC; Nigeria is UTC+1):
+   `0 6 * * 1-5  cd /path/to/student-analytics && docker compose exec -T backend python manage.py send-reminders >> backups/reminders.log 2>&1`
+
+Each email is a short digest: how many follow-ups are overdue or due soon, a link to the Follow-ups screen, and how to opt out. It
+**never contains notes**, and lists no student names unless you set `REMINDER_INCLUDE_NAMES=1`. If one address is rejected the
+others still go out, and the command exits with an error so a scheduler or monitor can notice. Sending is recorded in the audit log.
 
 ### Option B: split hosting
 
@@ -488,9 +533,11 @@ Make sure the CI checks on `main` are green (or run the three test suites yourse
 - [ ] Add a student with a score under 50: the at-risk badge and the "at-risk only" filter find them; export CSV opens in Excel.
 - [ ] Edit and delete a result; delete the test student.
 - [ ] Toggle dark mode; narrow the window below 760 px and use the menu.
+- [ ] **Student IDs:** add two students with the same name but different IDs; try a third with no ID and read the message.
+- [ ] **Class access:** create a staff account limited to one class. Signed in as them, only that class is visible: the Students list, the Class filter, the statistics, and a direct address for another class's student says "not found".
 - [ ] **Audit log** shows the actions above.
 - [ ] Reload a deep link such as `/students?risk=1`: the page loads (not a 404).
-- [ ] `./backup.sh` produces a file in `backups/`; restore it on a test copy once.
+- [ ] `./backup.sh` produces a file in `backups/`; run `./restore.sh` on that file on a test copy and confirm your data comes back.
 - [ ] Change the admin password and remove `ADMIN_PASSWORD` from `.env`.
 
 Then record the release:
@@ -516,20 +563,27 @@ git tag -a v1.0.0 -m "Version 1.0.0"
   (for example through a malicious browser extension) could read it. The strict Content-Security-Policy reduces this risk.
 - The CI lint step reports but doesn't block until the first clean lint (see *Automatic checks (CI)*).
 - Browser tests cover the main journeys but not how the charts look (they are drawn by a library): check those by eye.
-- Follow-ups have no reminders or notifications: staff find work on the Follow-ups screen. Everyone signed in can read every note.
+- Reminders are a once-a-day email digest plus in-app counts; there is no instant notification, SMS or chat message. Dates are
+  compared in UTC (the server's clock), so around midnight in Nigeria (UTC+1) an item can flip to "overdue" an hour early.
+- The free demo hosting can't send email (its disk and schedule don't persist); the in-app reminders do work there.
+- Everyone who can see a student can read that student's follow-up notes, viewers included.
+- A student belongs to at most one class. Students with no class are visible only to people with access to all students.
+- The reminder email and the in-app counts respect class access, but dates are compared in UTC.
 - Pass mark and grade bands live in two places (frontend and backend) and must be changed together.
 
 ## Roadmap
 
-Ideas for later versions, roughly by value:
+Done in version 1.3.0: student IDs, class-level access, and a tested backup-and-restore routine. Ideas for later, roughly by value:
 
-1. Server-side filtering and paging (needed for large datasets).
-2. Visual checks for the charts, which the browser tests can't judge.
-3. Per-course and per-semester comparison views, and emailed alerts when a student drops sharply.
-4. Follow-up reminders by email, and a "restricted" option so sensitive follow-ups are visible only to counsellors.
-5. Email password reset and optional two-factor sign-in.
-6. PostgreSQL option for multi-server setups.
-7. Hold the live demo's redeploy until the CI checks pass (Render has an Auto-Deploy setting for this; Netlify deploys on every push to `main`, so only merge green changes).
+1. **An independent security review** of the application and the server setup before real student data is used.
+2. Server-side filtering and paging (needed for large datasets; filtering currently happens in the browser).
+3. Per-student and per-class PDF reports.
+4. A parent or guardian view.
+5. Attendance data alongside results.
+6. A "restricted" option so sensitive follow-ups are visible only to counsellors; reminders by SMS or chat apps.
+7. Email password reset and optional two-factor sign-in; single sign-on with a school's existing accounts.
+8. Students in more than one class (subject groups), and "head of year" access across several classes.
+9. Visual checks for the charts, which the browser tests can't judge; a PostgreSQL option for multi-server setups.
 
 ## Troubleshooting
 
@@ -545,19 +599,47 @@ Ideas for later versions, roughly by value:
 | Forgot the admin password | `python manage.py set-password admin` (or via `docker compose exec backend`) |
 | Fake students appear in production | `SEED_DEMO_DATA` was not `0` on the first start. Delete the volume (`docker compose down -v`) **before you have real data** and start again |
 | Render says `ADMIN_PASSWORD is not acceptable` | The first admin password must be at least 10 characters (the server refuses to start with a shorter one) |
+| A teacher says they can see no students (or too few) | Open **Users**, choose *Edit access* for them and tick the classes. They only see students who have a class, and only in the classes they were given |
+| Import says "Several students are called ..." | Two students share that name. Add a **Student ID** column to the file (or give the existing students IDs) so the import knows which one each row is |
+| Import says "Student ID ... already belongs to ..." | The ID in the file is already used by a student with a different name. Check for a typo in the ID or the name |
 | Import says "Missing column(s)" | The first row must contain Student, Course, Semester and Score headings |
 | HTTPS certificate not issued | The domain's A record must point at the server and ports 80/443 must be reachable. Check `docker compose logs web` |
 | `npm test` fails with "vitest not found" | `npm install -D vitest` |
 
 ## Version history
 
-### 1.1.0 (in development)
+### 1.3.0 (in development)
+
+- **Student IDs (admission numbers):** optional and unique. Names are no longer required to be unique, so two students called the same
+  can exist when their IDs differ. The CSV import understands a Student ID column (and aliases such as Admission Number), matches by ID first,
+  can add IDs to students already recorded by name, and stops with a clear message instead of merging or guessing.
+- **Class-level access:** students can have a class; staff and viewers can be limited to chosen classes (administrators can't be). Applied to
+  every read: lists, statistics, insights, follow-ups, reminders and emails. Follow-ups can't be assigned to someone who can't see the student.
+  The Users page has an *Edit access* form, and limited people see a notice listing their classes. New `Class` column in the import and export.
+- **Backup and restore:** `restore.sh` verifies a backup before touching anything, saves the current data, and swaps the backup in. A test
+  proves the full cycle (backup while running, disaster, restore, accounts and access come back).
+- Existing databases are upgraded automatically: names stop being unique, everyone keeps seeing every student until an administrator limits them.
+- Demo data has admission numbers and four classes, plus an optional demo teacher limited to one class.
+- 55 browser tests (10 new) and 54 new backend tests.
+
+### 1.2.0
+
+- **Follow-up owners and reminders:** assign each follow-up to a staff member or administrator (default: whoever records it, or nobody).
+  New *Your follow-ups* card on the Overview, a count badge on the Follow-ups menu item, an *Assigned to me* / *Needs attention*
+  view, and *Due soon* flags alongside *Overdue*.
+- **Optional daily email digests** (`python manage.py send-reminders`, with `--dry-run` to preview): counts only, no notes, no student
+  names by default; set your address on the Account page, or an administrator can set it when creating a user.
+- Existing databases are upgraded automatically: follow-ups recorded before this version are assigned to whoever recorded them.
+- Demo data now assigns its follow-ups to the demo administrator, with some overdue and due soon, so a demo always has reminders to show.
+- 45 browser tests (8 new) and 27 new backend tests.
+
+### 1.1.0
 
 - **Intervention tracking:** record follow-ups per student, a Follow-ups screen with open and overdue items, and a list of at-risk students with no follow-up. New insight and Overview badge for unattended at-risk students.
 - **Staff role:** can record follow-ups without being able to change grades or manage users. Existing databases are upgraded automatically on the next start (the users table is rebuilt; accounts and passwords are kept).
 - Demo data now includes sample follow-ups.
 - **Fixed:** `vitest` also tried to run the browser tests (`e2e/*.spec.js`) and failed on them, so the CI unit-test step failed; `vitest.config.js` now limits it to `src/**/*.test.js`.
-- **Browser test suite** (37 Playwright tests, run against a production build with generous timeouts; failures are written to `e2e-failures.txt`) covering sign-in, permissions, data entry, import, follow-ups, users, theme and the phone layout.
+- **Browser test suite** (45 Playwright tests, run against a production build with generous timeouts; failures are written to `e2e-failures.txt`) covering sign-in, permissions, data entry, import, follow-ups, users, theme and the phone layout.
 - **Fixed:** on a phone, tables with action links (Courses, student results, Users) made the whole page scroll sideways. Found by the new browser tests.
 - **Fixed:** on the Students page, the filter controls could snap back or drop typed characters when the router was slow to apply address changes (found by running the browser tests on a slow laptop, reproduced and fixed here). The page now keeps its view in its own state, so controls react instantly, and mirrors it into the address so filtered views can still be bookmarked and shared.
 - `python app.py` now honours `PORT` and `FLASK_DEBUG` (used by the browser tests).
@@ -574,4 +656,4 @@ First complete release.
 - Light/dark theme, mobile layout, accessibility work.
 - Docker + Caddy production setup with automatic HTTPS, security headers and a backup script.
 - Free demo hosting setup (Render API + Netlify website) with an optional read-only demo account.
-- 81 backend tests and frontend unit tests.
+- 108 backend tests and frontend unit tests.

@@ -5,6 +5,7 @@ import { request } from "../api/client";
 import { useAuth } from "../auth/useAuth";
 import { useFetch } from "../hooks/useFetch";
 import { formatDate, kindLabel } from "../utils/interventions";
+import { dueLabel } from "../utils/reminders";
 
 function Item({ item, canRecord, isAdmin, onToggle, onEdit, onDelete }) {
   const done = item.status === "done";
@@ -15,14 +16,17 @@ function Item({ item, canRecord, isAdmin, onToggle, onEdit, onDelete }) {
         {done ? (
           <span className="badge badge--ok">Done {formatDate(item.completed_at)}</span>
         ) : item.overdue ? (
-          <span className="badge badge--alert">Overdue, was due {formatDate(item.due_date)}</span>
+          <span className="badge badge--alert">{dueLabel(item)}</span>
+        ) : item.due_soon ? (
+          <span className="badge badge--warn">{dueLabel(item)}</span>
         ) : item.due_date ? (
-          <span className="muted">Due {formatDate(item.due_date)}</span>
+          <span className="muted">{dueLabel(item)}</span>
         ) : null}
       </div>
       <p className="followup__note">{item.note}</p>
       <p className="muted followup__meta">
-        Added by {item.created_by ?? "unknown"} on {formatDate(item.created_at)}
+        Added by {item.created_by ?? "unknown"} on {formatDate(item.created_at)}.{" "}
+        {item.assigned_to ? `Assigned to ${item.assigned_to}.` : "Not assigned."}
       </p>
       {canRecord && (
         <div className="followup__actions">
